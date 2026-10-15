@@ -1,0 +1,9 @@
+<% const c = it.c, post = (f, v) => `@post('/categories/${c.id}', {payload: {field: '${f}', value: ${v}}})` %>
+<tr id="cat-<%= c.id %>" class="<%= it.saved ? 'saved' : '' %>">
+  <td><input type="text" value="<%= c.name %>" aria-label="Name" data-on:change="<%= post('name', 'el.value') %>"></td>
+  <td><input type="number" inputmode="decimal" min="0" max="100" step="0.01" value="<%= c.fvf_pct %>" aria-label="Final value fee %" data-on:change="<%= post('fvf_pct', 'el.value') %>"></td>
+  <td><input type="number" inputmode="decimal" min="0" step="1" value="<%= c.tier_threshold ?? '' %>" placeholder="none" aria-label="Tier threshold $" data-on:change="<%= post('tier_threshold', 'el.value') %>"></td>
+  <td><input type="number" inputmode="decimal" min="0" max="100" step="0.01" value="<%= c.tier_pct ?? '' %>" placeholder="—" aria-label="% above threshold" data-on:change="<%= post('tier_pct', 'el.value') %>"></td>
+  <td class="center"><input type="checkbox" <%= c.no_per_order ? 'checked' : '' %> aria-label="No per-order fee" data-on:change="<%= post('no_per_order', 'el.checked') %>"></td>
+  <td><button type="button" class="icon-btn" aria-label="Delete <%= c.name %>" data-on:click="@delete('/categories/<%= c.id %>')">✕</button></td>
+</tr>

@@ -1,0 +1,5 @@
+<% layout('./layout') %>
+<section class="card narrow">
+  <h1>You're offline</h1>
+  <p>Calculations run on the server using your saved rates, so they need a connection. Reconnect and <a href="/">try again</a>.</p>
+</section>

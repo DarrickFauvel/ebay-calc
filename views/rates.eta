@@ -1,0 +1,41 @@
+<% layout('./layout') %>
+<section class="card wide">
+  <h1>Shipping rates</h1>
+  <nav class="tabs" aria-label="Service">
+<% for (const [key, svc] of Object.entries(it.services)) { %>
+    <a href="/rates?service=<%= key %>"<% if (key === it.service) { %> aria-current="page"<% } %>><%= svc.name %></a>
+<% } %>
+  </nav>
+<% if (it.service === 'ups_ground') { %>
+  <p class="notice warn">These UPS Ground prices are placeholders copied from USPS. Replace them with the prices eBay Labels shows you; rates you've edited are marked.</p>
+<% } else { %>
+  <p class="notice">USPS Ground Advantage Commercial prices, from USPS Notice 123 (effective Oct 4, 2026). eBay Labels may be cheaper, so edit any cell to match what you actually pay. Changes save as you go.</p>
+<% } %>
+  <p class="hint">Your worst zone (<strong><%= it.worstZone %></strong>) is highlighted. Rows give the price for packages up to that weight.</p>
+  <div class="table-scroll">
+    <table class="rates">
+      <thead>
+        <tr>
+          <th scope="col">Up to</th>
+<% for (const z of it.services[it.service].zones) { %>
+          <th scope="col" class="<%= z === it.worstZone ? 'worst' : '' %>">Zone <%= z %></th>
+<% } %>
+        </tr>
+      </thead>
+      <tbody>
+<% for (const row of it.grid) { %>
+        <tr>
+          <th scope="row"><%= it.weight(row.max_oz) %></th>
+<% for (const z of it.services[it.service].zones) { %>
+<% if (row.cells[z]) { %>
+<%~ include('./partials/rate-cell', { cell: row.cells[z] }) %>
+<% } else { %>
+          <td></td>
+<% } %>
+<% } %>
+        </tr>
+<% } %>
+      </tbody>
+    </table>
+  </div>
+</section>

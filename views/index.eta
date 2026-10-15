@@ -1,0 +1,70 @@
+<% layout('./layout') %>
+<div class="calc-layout">
+  <form id="calc" class="card"
+        data-signals="<%= JSON.stringify(it.signals) %>"
+        data-on:input__debounce.250ms="@post('/calc')"
+        data-on:submit__prevent="@post('/calc')"
+        data-indicator="_busy">
+    <h1>Price with free shipping</h1>
+<% if (!it.settings.origin_zip) { %>
+    <p class="notice">Using zone <%= it.settings.usps_zone %> as the worst case. <a href="/settings">Set your origin ZIP</a> to compute your actual furthest lower-48 zone.</p>
+<% } %>
+
+    <fieldset class="segmented">
+      <legend>I want to…</legend>
+      <label><input type="radio" name="mode" value="profit" data-bind="mode"> Hit a target profit</label>
+      <label><input type="radio" name="mode" value="price" data-bind="mode"> Check a list price</label>
+    </fieldset>
+
+    <div class="field-grid">
+      <label class="field">
+        <span>Item cost</span>
+        <span class="affix" data-prefix="$"><input type="number" inputmode="decimal" min="0" step="0.01" data-bind="cost"></span>
+      </label>
+      <label class="field" data-show="$mode === 'profit'">
+        <span>Target profit</span>
+        <span class="affix" data-prefix="$"><input type="number" inputmode="decimal" step="0.01" data-bind="targetProfit"></span>
+      </label>
+      <label class="field" data-show="$mode === 'price'">
+        <span>List price</span>
+        <span class="affix" data-prefix="$"><input type="number" inputmode="decimal" min="0" step="0.01" data-bind="listPrice"></span>
+      </label>
+    </div>
+
+    <fieldset>
+      <legend>Packed weight</legend>
+      <div class="field-grid">
+        <label class="field"><span>lb</span><input type="number" inputmode="numeric" min="0" max="70" step="1" data-bind="lb"></label>
+        <label class="field"><span>oz</span><input type="number" inputmode="decimal" min="0" max="15.99" step="0.1" data-bind="oz"></label>
+      </div>
+    </fieldset>
+
+    <details>
+      <summary>Box size <small>(only matters for large or light boxes)</small></summary>
+      <div class="field-grid dims">
+        <label class="field"><span>L in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="length"></label>
+        <label class="field"><span>W in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="width"></label>
+        <label class="field"><span>H in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="height"></label>
+      </div>
+    </details>
+
+    <div class="field-grid">
+      <label class="field span-all">
+        <span>eBay category</span>
+        <select data-bind="categoryId">
+<% for (const c of it.categories) { %>
+          <option value="<%= c.id %>"><%= c.name %> (<%= c.fvf_pct %>%)</option>
+<% } %>
+        </select>
+      </label>
+      <label class="field">
+        <span>Buyer sales tax</span>
+        <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="20" step="0.1" data-bind="taxPct"></span>
+      </label>
+    </div>
+    <noscript><button type="submit">Calculate</button></noscript>
+  </form>
+
+<%~ include('./partials/results', { q: it.q, settings: it.settings, usd: it.usd, pct: it.pct, weight: it.weight }) %>
+</div>
+<%~ include('./partials/peek', { q: it.q, usd: it.usd, pct: it.pct }) %>
