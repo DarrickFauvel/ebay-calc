@@ -64,7 +64,7 @@ npm start
 
 The calculator is only as accurate as its tables, so check these from time to time:
 
-- **USPS Ground Advantage** is seeded with *Commercial* prices from USPS Notice 123 (effective Oct 4, 2026). eBay Labels pricing can be lower, so edit `/rates` to match what you actually pay.
+- **USPS Ground Advantage** is seeded with *Commercial* prices from USPS Notice 123 (effective Oct 4, 2026). The app checks [USPS's price files](https://pe.usps.com/pricechange/index) once a day (the server looks hourly and fetches when the last check is over 24 hours old). When the price change in effect publishes a table that differs from yours, a toast (shown on page load and when you return to the app) links to **Rates**, where **Apply update** pulls it in. Cells you've edited are kept unless you tick the box to replace them. eBay Labels pricing can be lower, so edit `/rates` to match what you actually pay.
 - **UPS Ground** rates are **placeholders** (copied from USPS) until you enter your eBay UPS label prices. The calculator flags them with a "Placeholder rate" badge.
 - **UPS worst zone** is a manual setting (default 8). Check UPS's zone chart for your ZIP.
 - **eBay fees** change periodically. Compare `/categories` against [eBay's selling fees page](https://www.ebay.com/help/selling/fees-credits-invoices/selling-fees?id=4822). Store subscribers usually pay less.
@@ -77,6 +77,8 @@ See [docs/pricing-math.md](docs/pricing-math.md) for the formulas.
 server.js                 Express app entry
 src/lib/fees.js           Pure pricing math (unit tested)
 src/lib/zones.js          USPS zone-chart lookup + lower-48 filter
+src/lib/usps-prices.js    USPS price-file discovery, zip + CSV parsing (unit tested)
+src/lib/rate-updates.js   Daily check for newer USPS rates, apply/dismiss
 src/lib/quote.js          Glue: DB rates/settings → fee math
 src/lib/sse.js            Minimal Datastar SSE helper
 src/lib/views.js          Eta instance + formatting helpers

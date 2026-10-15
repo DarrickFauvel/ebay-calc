@@ -9,7 +9,7 @@
 <% if (it.service === 'ups_ground') { %>
   <p class="notice warn">These UPS Ground prices are placeholders copied from USPS. Replace them with the prices eBay Labels shows you; rates you've edited are marked.</p>
 <% } else { %>
-  <p class="notice">USPS Ground Advantage Commercial prices, from USPS Notice 123 (effective Oct 4, 2026). eBay Labels may be cheaper, so edit any cell to match what you actually pay. Changes save as you go.</p>
+<%~ include('./partials/rate-update', { source: it.source, applied: it.applied }) %>
 <% } %>
   <p class="hint">Your worst zone (<strong><%= it.worstZone %></strong>) is highlighted. Rows give the price for packages up to that weight.</p>
   <div class="table-scroll">

@@ -30,7 +30,7 @@ The rate is the first row in the table whose `max_oz ≥ billable_oz`, at the wo
 ## Fees and profit at a given price
 
 ```
-sales_tax   = price × tax%
+sales_tax   = round(price × tax%, 2)   # charged to the cent, e.g. MA 6.25%
 order_total = price + sales_tax
 fvf         = tiered(order_total)              rate% up to threshold, tier% above
 per_order   = 0.30 if order_total ≤ 10 else 0.40   (0 if waived)

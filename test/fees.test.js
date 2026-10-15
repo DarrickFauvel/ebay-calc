@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  billableOz, breakdown, calculate, charmPrice, finalValueFee, lookupRate, solvePrice, USPS_DIM
+  billableOz, breakdown, calculate, charmPrice, finalValueFee, lookupRate, round2, solvePrice, USPS_DIM
 } from '../src/lib/fees.js'
 import { isContiguous, maxContiguousZone } from '../src/lib/zones.js'
 
@@ -88,4 +88,20 @@ test('max zone ignores AK/HI/territories/military', () => {
   // 5-digit entries (e.g. Hawaii's 96700) must map to their ZIP3
   const fromKansas = { Column0: [{ ZipCodes: '980---986', Zone: '7' }], Column1: [{ ZipCodes: '96700', Zone: '8' }] }
   assert.equal(maxContiguousZone(fromKansas), 7)
+})
+
+test('sales tax is charged to the cent (Massachusetts 6.25%)', () => {
+  const r = breakdown({ price: 24.99, taxPct: 6.25, category: most })
+  assert.equal(r.salesTax, 1.56) // 1.561875 → 1.56
+  near(r.orderTotal, 26.55, 1e-9)
+  near(r.fvf, 26.55 * 0.136, 1e-9)
+})
+
+test('solvePrice stays the lowest cent with cent-rounded tax', () => {
+  const base = { cost: 3.17, shipping: 8.95, taxPct: 6.25, category: most }
+  for (let t = 0; t <= 40; t += 0.37) {
+    const price = solvePrice({ ...base, targetProfit: t })
+    assert.ok(breakdown({ ...base, price }).profit >= t - 1e-9, `profit at ${price} < ${t}`)
+    assert.ok(breakdown({ ...base, price: round2(price - 0.01) }).profit < t - 1e-9, `${price} is not the lowest cent for ${t}`)
+  }
 })

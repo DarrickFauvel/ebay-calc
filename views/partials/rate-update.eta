@@ -1,0 +1,29 @@
+<% const s = it.source %>
+<div id="rate-update" class="rate-update">
+  <p class="notice">USPS Ground Advantage Commercial prices, from <%= s.installed_label || 'USPS Notice 123' %>. eBay Labels may be cheaper, so edit any cell to match what you actually pay. Changes save as you go.</p>
+<% if (s.pending_id) { %>
+  <form class="notice update" method="post" action="/rates/updates/apply">
+    <p><strong>New USPS prices:</strong> <%= s.pending_label %>. <%= s.pending_changed %> prices in your table will change.</p>
+<% if (s.pending_conflicts) { %>
+    <label class="check"><input type="checkbox" name="overwrite" value="1"> Also replace <%= s.pending_conflicts %> price<%= s.pending_conflicts === 1 ? '' : 's' %> you edited</label>
+<% } %>
+    <button type="submit">Apply update</button>
+  </form>
+<% } %>
+<% if (it.applied != null) { %>
+  <p class="status ok" role="status">Updated <%= it.applied %> price<%= it.applied === 1 ? '' : 's' %>.</p>
+<% } %>
+  <div class="actions">
+    <button type="button" class="secondary" data-indicator="_checking" data-attr:disabled="$_checking" data-on:click="@post('/rates/updates/check')">Check for updates</button>
+    <p class="hint">
+<% if (s.check_error) { %>
+      <span class="status warn">Last check failed: <%= s.check_error %></span>
+<% } else if (s.checked_at) { %>
+      <%= it.checked && !s.pending_id ? 'Up to date. ' : '' %>Checked <%= new Date(s.checked_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/New_York' }) %> ET.
+<% } %>
+<% if (s.upcoming_label) { %>
+      Next USPS change: <%= s.upcoming_label %>.
+<% } %>
+    </p>
+  </div>
+</div>

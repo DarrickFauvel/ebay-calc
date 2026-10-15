@@ -6,6 +6,7 @@ import { db, migrate } from './client.js'
 
 // USPS Ground Advantage — Commercial, from USPS Notice 123 (effective Oct 4, 2026).
 // Rows: [max_oz, zone1 … zone8]. eBay label prices may be lower — edit on /rates.
+const SEED_LABEL = 'Notice 123, effective Oct 4, 2026'
 const uspsGa = JSON.parse(readFileSync(new URL('./usps-ga-commercial.json', import.meta.url)))
 
 // eBay fee presets — verify against https://www.ebay.com/help/selling/fees-credits-invoices/selling-fees
@@ -23,9 +24,10 @@ const CATEGORIES = [
   ['Heavy Equipment & Commercial Trucks', 3, null, null, 0]
 ]
 
-function rateRows () {
+/** [service, max_oz, zone, price] rows for a USPS GA table, plus the UPS placeholder mirror. */
+export function rateRows (table = uspsGa) {
   const rows = []
-  for (const [maxOz, ...zones] of uspsGa) {
+  for (const [maxOz, ...zones] of table) {
     zones.forEach((price, i) => rows.push(['usps_ga', maxOz, i + 1, price]))
     // UPS Ground placeholder: mirrors GA at 1 lb+ (UPS bills a 1 lb minimum).
     // Replace with your eBay UPS label prices on /rates.
@@ -42,6 +44,8 @@ export async function seed ({ force = false } = {}) {
   const stmts = [
     'DELETE FROM rates',
     'DELETE FROM categories',
+    'DELETE FROM rate_source',
+    { sql: 'INSERT INTO rate_source (service, installed_label) VALUES (?, ?)', args: ['usps_ga', SEED_LABEL] },
     ...rateRows().map((args) => ({
       sql: 'INSERT INTO rates (service, max_oz, zone, price) VALUES (?, ?, ?, ?)',
       args

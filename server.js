@@ -1,6 +1,7 @@
 import express from 'express'
 import { migrate } from './src/db/client.js'
 import { seed } from './src/db/seed.js'
+import { checkIfStale } from './src/lib/rate-updates.js'
 import { render } from './src/lib/views.js'
 import calc from './src/routes/calc.js'
 import settings from './src/routes/settings.js'
@@ -13,6 +14,7 @@ if (await seed()) console.log('First run: seeded rates and categories.')
 const app = express()
 app.disable('x-powered-by')
 app.use(express.json())
+app.use(express.urlencoded({ extended: false }))
 app.use(express.static('public', { maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0 }))
 
 app.use(calc)
@@ -27,4 +29,15 @@ app.use((err, req, res, next) => {
 })
 
 const port = Number(process.env.PORT) || 3000
-app.listen(port, () => console.log(`listening on http://localhost:${port}`))
+// Check USPS for new rates on boot, then hourly; each run only fetches if the last check is a day old.
+const checkRates = () => checkIfStale().then((s) => {
+  if (!s) return
+  if (s.check_error) console.warn('USPS rate check failed:', s.check_error)
+  else if (s.pending_id) console.log(`New USPS rates available: ${s.pending_label}`)
+})
+
+app.listen(port, () => {
+  console.log(`listening on http://localhost:${port}`)
+  checkRates()
+  setInterval(checkRates, 60 * 60 * 1000).unref()
+})
