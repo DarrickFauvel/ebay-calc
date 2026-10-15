@@ -1,0 +1,7 @@
+<div id="toast" class="toast" role="status">
+  <p><strong>New USPS rates published.</strong> <%= it.update.pending_label %>: <%= it.update.pending_changed %> Ground Advantage prices differ from your table.</p>
+  <div class="actions">
+    <a class="button" href="/rates?service=usps_ga#rate-update">Review</a>
+    <button type="button" class="secondary" data-on:click="@post('/rates/updates/dismiss')">Dismiss</button>
+  </div>
+</div>

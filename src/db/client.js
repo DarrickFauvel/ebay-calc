@@ -38,6 +38,21 @@ const SCHEMA = [
     tier_pct REAL,
     no_per_order INTEGER NOT NULL DEFAULT 0,
     sort INTEGER NOT NULL DEFAULT 0
+  )`,
+  // Where each service's rate table came from, and any newer published table waiting to be applied.
+  `CREATE TABLE IF NOT EXISTS rate_source (
+    service TEXT PRIMARY KEY,
+    installed_id TEXT,
+    installed_label TEXT,
+    pending_id TEXT,
+    pending_label TEXT,
+    pending_json TEXT,
+    pending_changed INTEGER,
+    pending_conflicts INTEGER,
+    dismissed_id TEXT,
+    upcoming_label TEXT,
+    checked_at TEXT,
+    check_error TEXT
   )`
 ]
 
@@ -66,6 +81,20 @@ export async function listCategories () {
 export async function getCategory (id) {
   const { rows } = await db.execute({ sql: 'SELECT * FROM categories WHERE id = ?', args: [id] })
   return rows[0]
+}
+
+export async function getRateSource (service) {
+  const { rows } = await db.execute({ sql: 'SELECT * FROM rate_source WHERE service = ?', args: [service] })
+  return rows[0] ?? { service }
+}
+
+export async function updateRateSource (service, fields) {
+  const cols = Object.keys(fields)
+  await db.execute({
+    sql: `INSERT INTO rate_source (service, ${cols.join(', ')}) VALUES (?, ${cols.map(() => '?').join(', ')})
+          ON CONFLICT (service) DO UPDATE SET ${cols.map((c) => `${c} = excluded.${c}`).join(', ')}`,
+    args: [service, ...cols.map((c) => fields[c] ?? null)]
+  })
 }
 
 /** All weight steps for one service + zone. */

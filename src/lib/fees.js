@@ -45,7 +45,7 @@ export function finalValueFee (amount, { fvf_pct, tier_threshold, tier_pct }) {
  * so the buyer pays price + sales tax and eBay charges fees on that total).
  */
 export function breakdown ({ price, cost = 0, shipping = 0, taxPct = 0, category }) {
-  const salesTax = price * (taxPct / 100)
+  const salesTax = round2(price * (taxPct / 100)) // tax is charged to the cent
   const orderTotal = price + salesTax
   const fvf = finalValueFee(orderTotal, category)
   const perOrder = category.no_per_order ? 0 : orderTotal > 10 ? 0.4 : 0.3
@@ -70,8 +70,8 @@ export function breakdown ({ price, cost = 0, shipping = 0, taxPct = 0, category
 
 /**
  * Lowest list price (to the cent) that yields at least `targetProfit`.
- * Profit rises monotonically with price (fee rates < 100%), so bisection is
- * exact even across the per-order-fee and FVF tier thresholds.
+ * Profit rises with price (fee rates < 100%), so bisection lands on the answer
+ * even across the per-order-fee and FVF tier thresholds.
  */
 export function solvePrice ({ targetProfit, cost = 0, shipping = 0, taxPct = 0, category }) {
   const profitAt = (price) => breakdown({ price, cost, shipping, taxPct, category }).profit
@@ -85,6 +85,8 @@ export function solvePrice ({ targetProfit, cost = 0, shipping = 0, taxPct = 0, 
   }
   let price = Math.ceil(hi * 100 - 1e-6) / 100
   while (profitAt(price) < targetProfit - 1e-9) price = round2(price + 0.01)
+  // Cent-rounded tax makes profit step slightly between cents; make sure no lower cent also works.
+  while (price > 0 && profitAt(round2(price - 0.01)) >= targetProfit - 1e-9) price = round2(price - 0.01)
   return price
 }
 

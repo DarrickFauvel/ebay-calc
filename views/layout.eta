@@ -40,5 +40,11 @@
   <main>
 <%~ it.body %>
   </main>
+  <%/* Ask for the rate-update toast on load and whenever the app comes back to the foreground.
+      The wrapper keeps the listeners; #toast inside it is what the server patches. */%>
+  <div data-init="@get('/rates/updates/toast')"
+       data-on:visibilitychange__document="document.visibilityState === 'visible' && @get('/rates/updates/toast')">
+    <div id="toast"></div>
+  </div>
 </body>
 </html>
