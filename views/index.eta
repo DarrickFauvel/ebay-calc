@@ -58,10 +58,15 @@
         </select>
       </label>
       <label class="field">
+        <span>Ship to ZIP</span>
+        <input type="text" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="off" placeholder="Worst zone" data-bind="shipZip">
+      </label>
+      <label class="field">
         <span>Buyer sales tax</span>
         <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="20" step="0.01" data-bind="taxPct"></span>
       </label>
     </div>
+<%~ include('./partials/ship-to', { dest: it.q.dest }) %>
     <noscript><button type="submit">Calculate</button></noscript>
   </form>
 

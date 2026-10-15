@@ -19,7 +19,9 @@ router.get('/', async (req, res) => {
     taxPct: settings.tax_pct,
     mode: 'profit',
     targetProfit: 10,
-    listPrice: 0
+    listPrice: 0,
+    shipZip: '',
+    taxZip: ''
   }
   const q = await quote(signals, settings)
   res.send(render('index', { title: 'Calculator', nav: 'calc', settings, categories, signals, q }))
@@ -33,6 +35,8 @@ router.post('/calc', async (req, res) => {
   stream.patchElements(render('partials/peek', { q }))
   // Seed the "list price" box with the solved price when switching modes.
   if (q.result && q.input.mode === 'profit') stream.patchSignals({ listPrice: q.result.price })
+  if (q.taxFill) stream.patchSignals(q.taxFill)
+  stream.patchElements(render('partials/ship-to', { dest: q.dest }))
   stream.end()
 })
 
