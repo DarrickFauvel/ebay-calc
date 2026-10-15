@@ -34,7 +34,7 @@ export function parseInputs (s = {}) {
 export async function destination (zip, settings) {
   if (zip.length !== 5) return null
   const dest = { zip, ...(stateForZip(zip) ?? { state: null, taxPct: null }) }
-  if (!settings.origin_zip) return { ...dest, error: 'Set your origin ZIP in Settings to look up the zone.' }
+  if (!settings.origin_zip) return { ...dest, error: 'Set your ZIP (where you ship from) in Settings to look up the zone.' }
   try {
     const zone = zoneForZip(await fetchZoneChart(settings.origin_zip), zip)
     return zone ? { ...dest, zone } : { ...dest, error: 'USPS has no zone for that ZIP.' }

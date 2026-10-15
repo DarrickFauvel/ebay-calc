@@ -10,14 +10,14 @@
     <legend>Ship from</legend>
     <div class="field-grid">
       <label class="field">
-        <span>Origin ZIP</span>
+        <span>Your ZIP (where you ship from)</span>
         <input type="text" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="postal-code" data-bind="originZip">
       </label>
       <div class="field align-end">
         <button type="button" class="secondary" data-on:click="@post('/settings/zone')" data-attr:disabled="$_busy || $originZip.length !== 5">Find furthest zone</button>
       </div>
     </div>
-    <p class="hint">Looks up the official USPS zone chart for your ZIP and picks the furthest zone in the lower 48 (no AK, HI, territories or military).<% if (s.zone_checked_at) { %> Last checked against the chart effective <%= s.zone_checked_at %>.<% } %></p>
+    <p class="hint">Zones measure distance from this ZIP: zone 1 is nearby, zone 8 is the far side of the country. This looks up the official USPS zone chart for your ZIP and picks the furthest zone in the lower 48 (no AK, HI, territories or military).<% if (s.zone_checked_at) { %> Last checked against the chart effective <%= s.zone_checked_at %>.<% } %></p>
     <div class="field-grid">
       <label class="field">
         <span>Worst USPS zone</span>
