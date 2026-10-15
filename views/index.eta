@@ -7,7 +7,7 @@
         data-indicator="_busy">
     <h1>Price with free shipping</h1>
 <% if (!it.settings.origin_zip) { %>
-    <p class="notice">Using zone <%= it.settings.usps_zone %> as the worst case. <a href="/settings">Set your origin ZIP</a> to compute your actual furthest lower-48 zone.</p>
+    <p class="notice">Using zone <%= it.settings.usps_zone %> as the worst case. <a href="/settings">Set your ZIP (where you ship from)</a> to compute your actual furthest lower-48 zone.</p>
 <% } %>
 
     <fieldset class="segmented">

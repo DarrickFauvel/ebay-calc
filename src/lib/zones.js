@@ -60,9 +60,9 @@ export function zoneForZip (chart, destZip) {
 }
 
 const zip3Of = (originZip) => {
-  const zip3 = String(originZip).trim().slice(0, 3)
-  if (!/^\d{3}$/.test(zip3)) throw new Error('Enter a valid 5-digit ZIP code')
-  return zip3
+  const zip = String(originZip).trim()
+  if (!/^\d{5}$/.test(zip)) throw new Error('Enter a valid 5-digit ZIP code')
+  return zip.slice(0, 3)
 }
 
 // Charts change rarely; cache per origin ZIP3 for a day so the calculator can look up every keystroke.
