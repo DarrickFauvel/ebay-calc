@@ -1,0 +1,10 @@
+<% const d = it.dest %>
+<p id="ship-to" class="hint ship-to" role="status">
+<% if (!d) { %>
+  Optional: price an actual order's destination instead of your worst zone.
+<% } else if (d.error) { %>
+  <span class="status warn"><%= d.error %></span>
+<% } else { %>
+  <strong>Zone <%= d.zone %></strong><% if (d.state) { %> · <%= d.state %> state tax <%= d.taxPct %>%, plus any local tax on the order<% } %>
+<% } %>
+</p>

@@ -34,7 +34,10 @@
       </a>
 <% } %>
     </nav>
-    <install-button></install-button>
+    <div class="header-actions">
+      <qr-button></qr-button>
+      <install-button></install-button>
+    </div>
   </header>
   <p class="offline-banner" role="status" hidden>You're offline. Showing the last loaded page; calculations resume when you reconnect.</p>
   <main>

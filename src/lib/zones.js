@@ -36,9 +36,43 @@ export function maxContiguousZone (chart) {
   return max || null
 }
 
-export async function fetchUspsMaxZone (originZip, { signal } = {}) {
+/**
+ * Zone from a USPS zone chart to one destination ZIP. 5-digit exceptions win;
+ * service-specific ones (Priority, light Ground Advantage to APO etc.) are skipped.
+ */
+export function zoneForZip (chart, destZip) {
+  const zip = String(destZip).trim()
+  if (!/^\d{5}$/.test(zip)) return null
+  const zip5 = parseInt(zip, 10)
+  for (const { ZipCodes, Zone, MailService } of chart.Zip5Digit ?? []) {
+    if (MailService) continue
+    const [lo, hi = lo] = ZipCodes.split(/-+/).map((n) => parseInt(n, 10))
+    if (zip5 >= lo && zip5 <= hi) return parseInt(Zone, 10) || null
+  }
+  const zip3 = parseInt(zip.slice(0, 3), 10)
+  for (const col of ['Column0', 'Column1', 'Column2', 'Column3']) {
+    for (const { ZipCodes, Zone } of chart[col] ?? []) {
+      const [lo, hi] = parseRange(ZipCodes)
+      if (zip3 >= lo && zip3 <= hi) return parseInt(Zone, 10) || null
+    }
+  }
+  return null
+}
+
+const zip3Of = (originZip) => {
   const zip3 = String(originZip).trim().slice(0, 3)
   if (!/^\d{3}$/.test(zip3)) throw new Error('Enter a valid 5-digit ZIP code')
+  return zip3
+}
+
+// Charts change rarely; cache per origin ZIP3 for a day so the calculator can look up every keystroke.
+const charts = new Map()
+const CHART_TTL = 24 * 60 * 60 * 1000
+
+export async function fetchZoneChart (originZip, { signal } = {}) {
+  const zip3 = zip3Of(originZip)
+  const hit = charts.get(zip3)
+  if (hit && Date.now() - hit.at < CHART_TTL) return hit.chart
   const d = new Date()
   const date = `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`
   const url = `${ZONE_CHART_URL}?zipCode3Digit=${zip3}&shippingDate=${encodeURIComponent(date)}`
@@ -50,6 +84,12 @@ export async function fetchUspsMaxZone (originZip, { signal } = {}) {
   if (!res.ok) throw new Error(`USPS zone chart returned ${res.status}`)
   const chart = await res.json()
   if (chart.ZIPCodeError) throw new Error(chart.ZIPCodeError)
+  charts.set(zip3, { chart, at: Date.now() })
+  return chart
+}
+
+export async function fetchUspsMaxZone (originZip, opts) {
+  const chart = await fetchZoneChart(originZip, opts)
   const zone = maxContiguousZone(chart)
   if (!zone) throw new Error('No zones found in USPS response')
   return { zone, effectiveDate: chart.EffectiveDate }

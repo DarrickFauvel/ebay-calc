@@ -1,6 +1,7 @@
 import './components/money-bar.js'
 import './components/copy-text.js'
 import './components/install-button.js'
+import './components/qr-button.js'
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch((err) => console.warn('SW registration failed', err))

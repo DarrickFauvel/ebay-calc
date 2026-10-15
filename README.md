@@ -4,6 +4,7 @@ A mobile-first PWA for pricing eBay listings with **free shipping baked in**. It
 
 - **Hit a target profit**: enter cost, weight and profit → get the list price (plus a `.99` charm price).
 - **Check a list price**: enter a price → see profit, margin and where every dollar goes.
+- **Compare a real order**: enter its **Ship to ZIP** to price USPS at that destination's zone (from the USPS zone chart for your origin) instead of the worst case. The buyer's state base tax rate is filled in; add any local tax from the order. UPS stays at your worst zone.
 - **Shipping pad**: shows how much of the price is covering shipping. It's always more than the label cost, because fees apply to the pad too.
 
 ## Stack
@@ -76,7 +77,8 @@ See [docs/pricing-math.md](docs/pricing-math.md) for the formulas.
 ```
 server.js                 Express app entry
 src/lib/fees.js           Pure pricing math (unit tested)
-src/lib/zones.js          USPS zone-chart lookup + lower-48 filter
+src/lib/zones.js          USPS zone-chart lookup (cached), lower-48 filter, destination zone
+src/lib/states.js         ZIP prefix → state + state base sales-tax rate
 src/lib/usps-prices.js    USPS price-file discovery, zip + CSV parsing (unit tested)
 src/lib/rate-updates.js   Daily check for newer USPS rates, apply/dismiss
 src/lib/quote.js          Glue: DB rates/settings → fee math

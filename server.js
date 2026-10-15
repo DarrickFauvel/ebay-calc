@@ -7,6 +7,7 @@ import calc from './src/routes/calc.js'
 import settings from './src/routes/settings.js'
 import rates from './src/routes/rates.js'
 import categories from './src/routes/categories.js'
+import qr from './src/routes/qr.js'
 
 await migrate()
 if (await seed()) console.log('First run: seeded rates and categories.')
@@ -21,6 +22,7 @@ app.use(calc)
 app.use(settings)
 app.use('/rates', rates)
 app.use('/categories', categories)
+app.use(qr)
 app.get('/offline', (req, res) => res.send(render('offline', { title: 'Offline' })))
 
 app.use((err, req, res, next) => {
