@@ -39,6 +39,17 @@ const SCHEMA = [
     no_per_order INTEGER NOT NULL DEFAULT 0,
     sort INTEGER NOT NULL DEFAULT 0
   )`,
+  // Last calculator inputs, restored on the next visit (any device).
+  `CREATE TABLE IF NOT EXISTS last_inputs (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    cost REAL,
+    target_profit REAL,
+    lb REAL,
+    oz REAL,
+    length REAL,
+    width REAL,
+    height REAL
+  )`,
   // Where each service's rate table came from, and any newer published table waiting to be applied.
   `CREATE TABLE IF NOT EXISTS rate_source (
     service TEXT PRIMARY KEY,
@@ -81,6 +92,20 @@ export async function listCategories () {
 export async function getCategory (id) {
   const { rows } = await db.execute({ sql: 'SELECT * FROM categories WHERE id = ?', args: [id] })
   return rows[0]
+}
+
+export async function getLastInputs () {
+  const { rows } = await db.execute('SELECT cost, target_profit, lb, oz, length, width, height FROM last_inputs WHERE id = 1')
+  return rows[0] ?? null
+}
+
+export async function saveLastInputs ({ cost, targetProfit, lb, oz, length, width, height }) {
+  await db.execute({
+    sql: `INSERT INTO last_inputs (id, cost, target_profit, lb, oz, length, width, height) VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT (id) DO UPDATE SET cost = excluded.cost, target_profit = excluded.target_profit,
+          lb = excluded.lb, oz = excluded.oz, length = excluded.length, width = excluded.width, height = excluded.height`,
+    args: [cost, targetProfit, lb, oz, length, width, height]
+  })
 }
 
 export async function getRateSource (service) {

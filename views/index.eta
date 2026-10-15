@@ -39,8 +39,8 @@
       </div>
     </fieldset>
 
-    <details>
-      <summary>Box size <small>(only matters for large or light boxes)</small></summary>
+    <details<% if (it.signals.length || it.signals.width || it.signals.height) { %> open<% } %>>
+      <summary>Box size <small>(needed for UPS, and for USPS boxes over 1 cubic foot)</small></summary>
       <div class="field-grid dims">
         <label class="field"><span>L in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="length"></label>
         <label class="field"><span>W in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="width"></label>
