@@ -1,0 +1,26 @@
+<% layout('./layout') %>
+<section class="card wide">
+  <h1>eBay fee presets</h1>
+  <p class="notice">eBay changes its fees from time to time. Check these against <a href="https://www.ebay.com/help/selling/fees-credits-invoices/selling-fees?id=4822" rel="noopener" target="_blank">eBay's selling fees page</a>, and add your own categories. Store subscribers usually pay lower rates.</p>
+  <p class="hint">The final value fee applies to the buyer's total, including sales tax. Above the threshold, the lower % applies to the remainder. The per-order fee is $0.30 on orders of $10 or less and $0.40 above that.</p>
+  <div class="table-scroll">
+    <table class="categories">
+      <thead>
+        <tr>
+          <th scope="col">Category</th>
+          <th scope="col">Fee %</th>
+          <th scope="col">Up to $</th>
+          <th scope="col">% above</th>
+          <th scope="col">No per-order fee</th>
+          <th scope="col"><span class="visually-hidden">Delete</span></th>
+        </tr>
+      </thead>
+      <tbody id="category-rows">
+<% for (const c of it.categories) { %>
+<%~ include('./partials/category-row', { c }) %>
+<% } %>
+      </tbody>
+    </table>
+  </div>
+  <button type="button" class="secondary" data-on:click="@post('/categories')">+ Add category</button>
+</section>

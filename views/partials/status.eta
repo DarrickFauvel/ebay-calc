@@ -1,0 +1,1 @@
+<p id="<%= it.id %>" class="status <%= it.kind %>" role="status"><%= it.message %></p>

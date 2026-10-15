@@ -1,0 +1,61 @@
+<% layout('./layout') %>
+<% const s = it.settings %>
+<form class="card narrow"
+      data-signals="<%= JSON.stringify({ originZip: s.origin_zip, uspsZone: s.usps_zone, upsZone: s.ups_zone, upsDimDivisor: s.ups_dim_divisor, taxPct: s.tax_pct, categoryId: s.category_id }) %>"
+      data-on:submit__prevent="@post('/settings')"
+      data-indicator="_busy">
+  <h1>Settings</h1>
+
+  <fieldset>
+    <legend>Ship from</legend>
+    <div class="field-grid">
+      <label class="field">
+        <span>Origin ZIP</span>
+        <input type="text" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="postal-code" data-bind="originZip">
+      </label>
+      <div class="field align-end">
+        <button type="button" class="secondary" data-on:click="@post('/settings/zone')" data-attr:disabled="$_busy || $originZip.length !== 5">Find furthest zone</button>
+      </div>
+    </div>
+    <p class="hint">Looks up the official USPS zone chart for your ZIP and picks the furthest zone in the lower 48 (no AK, HI, territories or military).<% if (s.zone_checked_at) { %> Last checked against the chart effective <%= s.zone_checked_at %>.<% } %></p>
+    <div class="field-grid">
+      <label class="field">
+        <span>Worst USPS zone</span>
+        <input type="number" min="1" max="8" step="1" data-bind="uspsZone">
+      </label>
+      <label class="field">
+        <span>Worst UPS Ground zone</span>
+        <input type="number" min="2" max="8" step="1" data-bind="upsZone">
+      </label>
+    </div>
+    <p class="hint">UPS zones differ from USPS zones. Check yours on UPS's zone chart for your ZIP, under "Calculate time and cost" → zone charts.</p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Defaults</legend>
+    <div class="field-grid">
+      <label class="field">
+        <span>Average buyer sales tax</span>
+        <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="20" step="0.1" data-bind="taxPct"></span>
+      </label>
+      <label class="field">
+        <span>Default category</span>
+        <select data-bind="categoryId">
+<% for (const c of it.categories) { %>
+          <option value="<%= c.id %>"><%= c.name %></option>
+<% } %>
+        </select>
+      </label>
+      <label class="field">
+        <span>UPS dim divisor</span>
+        <input type="number" min="100" max="400" step="1" data-bind="upsDimDivisor">
+      </label>
+    </div>
+    <p class="hint">eBay charges its final value fee on the sales tax as well, so a higher tax rate raises your fees. The US average combined rate is about 7–8%. UPS dimensional weight is L×W×H ÷ divisor (139 is standard).</p>
+  </fieldset>
+
+  <div class="actions">
+    <button type="submit" data-attr:disabled="$_busy">Save settings</button>
+    <p id="settings-status" class="status" role="status"></p>
+  </div>
+</form>

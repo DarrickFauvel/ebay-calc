@@ -1,0 +1,21 @@
+{
+  "name": "Ship Pad — eBay free-shipping calculator",
+  "short_name": "Ship Pad",
+  "description": "Price eBay items with worst-case shipping, fees and sales tax built in.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f6fb",
+  "theme_color": "#1d4ed8",
+  "icons": [
+    { "src": "/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Rates", "url": "/rates" },
+    { "name": "Settings", "url": "/settings" }
+  ]
+}

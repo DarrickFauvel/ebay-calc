@@ -1,0 +1,58 @@
+<section id="results" class="card results" aria-live="polite">
+<% const { q } = it %>
+<% if (q.error) { %>
+  <p class="empty"><%= q.error %></p>
+<% } else { const r = q.result, b = q.best %>
+  <div class="headline">
+<% if (q.input.mode === 'profit') { %>
+    <p class="eyebrow">List it at</p>
+    <p class="price"><copy-text value="<%= r.price.toFixed(2) %>"><%= it.usd(r.price) %></copy-text></p>
+    <p class="sub">or <copy-text value="<%= r.charm.toFixed(2) %>"><%= it.usd(r.charm) %></copy-text> with free shipping · profit <%= it.usd(r.profit) %></p>
+<% } else { %>
+    <p class="eyebrow">You'd profit</p>
+    <p class="price <%= r.profit < 0 ? 'loss' : '' %>"><%= it.usd(r.profit) %></p>
+    <p class="sub">at <%= it.usd(r.price) %> with free shipping · <%= it.pct(r.margin) %> margin</p>
+<% } %>
+  </div>
+
+  <div class="pad">
+    <p><strong><%= it.usd(r.shipPad) %></strong> of the price is free-shipping pad.</p>
+    <p class="hint">The label costs <%= it.usd(b.price) %> (<%= b.name %>, zone <%= b.zone %>). The pad is higher because eBay also takes fees on the part of the price that covers shipping.</p>
+  </div>
+
+  <money-bar label="Where the list price goes" segments="<%= JSON.stringify([
+    { label: 'Item cost', value: r.cost, tone: 'cost' },
+    { label: 'Shipping', value: r.shipping, tone: 'ship' },
+    { label: 'eBay fees', value: +r.fees.toFixed(2), tone: 'fees' },
+    { label: r.profit < 0 ? 'Loss' : 'Profit', value: +r.profit.toFixed(2), tone: r.profit < 0 ? 'loss' : 'profit' }
+  ]) %>"></money-bar>
+
+  <dl class="breakdown">
+    <div><dt>List price (free shipping)</dt><dd><%= it.usd(r.price) %></dd></div>
+    <div class="muted"><dt>+ Sales tax eBay collects &amp; remits (<%= q.input.taxPct %>%)</dt><dd><%= it.usd(r.salesTax) %></dd></div>
+    <div class="muted"><dt>= Buyer pays</dt><dd><%= it.usd(r.orderTotal) %></dd></div>
+    <div><dt>Final value fee <small>(<%= q.category.name %>, on buyer total)</small></dt><dd>−<%= it.usd(r.fvf) %></dd></div>
+    <div><dt>Per-order fee</dt><dd>−<%= it.usd(r.perOrder) %></dd></div>
+    <div class="total"><dt>eBay pays out</dt><dd><%= it.usd(r.payout) %></dd></div>
+    <div><dt>Shipping label (worst zone)</dt><dd>−<%= it.usd(r.shipping) %></dd></div>
+    <div><dt>Item cost</dt><dd>−<%= it.usd(r.cost) %></dd></div>
+    <div class="total <%= r.profit < 0 ? 'loss' : '' %>"><dt>Profit · <%= it.pct(r.margin) %> margin</dt><dd><%= it.usd(r.profit) %></dd></div>
+    <div class="muted"><dt>Fees as % of list price</dt><dd><%= it.pct(r.effectiveFeePct) %></dd></div>
+  </dl>
+
+  <h2>Shipping to the furthest lower-48 zone</h2>
+  <ul class="services">
+<% for (const s of q.services) { %>
+    <li class="service <%= s === b ? 'best' : '' %>">
+      <span class="name"><%= s.name %></span>
+      <span class="meta">Zone <%= s.zone %> · <%= s.billableOz ? it.weight(s.billableOz) : '—' %><% if (s.dimApplied) { %> (dim weight)<% } %></span>
+      <span class="cost"><%= s.price == null ? 'n/a' : it.usd(s.price) %></span>
+      <span class="badges">
+<% if (s === b) { %><span class="badge good">Cheapest</span><% } %>
+<% if (s.estimate) { %><a class="badge warn" href="/rates?service=<%= s.key %>">Placeholder rate</a><% } %>
+      </span>
+    </li>
+<% } %>
+  </ul>
+<% } %>
+</section>

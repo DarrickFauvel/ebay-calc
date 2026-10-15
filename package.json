@@ -1,0 +1,23 @@
+{
+  "name": "ebay-calc",
+  "version": "1.0.0",
+  "description": "PWA calculator for pricing eBay items with free shipping baked in",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env server.js",
+    "start": "node --env-file-if-exists=.env server.js",
+    "seed": "node --env-file-if-exists=.env src/db/seed.js --force",
+    "icons": "node scripts/make-icons.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "eta": "^4.6.0",
+    "express": "^5.3.0",
+    "qrcode": "^1.5.4"
+  }
+}
