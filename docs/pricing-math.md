@@ -21,7 +21,7 @@ dim_oz      = ceil(L × W × H / divisor) lb × 16     (L, W, H rounded up to wh
 | USPS Ground Advantage | only above 1 ft³ (1,728 in³) | 166 | — |
 | UPS Ground | always (when dimensions are entered) | setting, default 139 | 1 lb |
 
-The rate is the first row in the table whose `max_oz ≥ billable_oz`, at the worst zone for that service. The cheapest service is used for pricing, and the others are shown for comparison.
+The rate is the first row in the table whose `max_oz ≥ billable_oz`, at the worst zone for that service. The cheapest service is used for pricing, and the others are shown for comparison. UPS without box dimensions is flagged "Needs box size" and isn't picked as cheapest, because its real price depends on dim weight.
 
 ### Worst zone
 

@@ -60,6 +60,8 @@ export async function shippingQuotes (pkg, settings, { uspsZone } = {}) {
     const isUps = key === 'ups_ground'
     const zone = isUps ? settings.ups_zone : (uspsZone ?? settings.usps_zone)
     const dim = isUps ? { divisor: settings.ups_dim_divisor } : USPS_DIM
+    // UPS applies dim weight to every box, so its price is unreliable without dimensions.
+    const needsDims = isUps && !(pkg.length && pkg.width && pkg.height)
     let oz = billableOz(pkg, dim)
     if (isUps && oz > 0) oz = Math.max(oz, 16) // UPS bills a 1 lb minimum
     const rate = lookupRate(await ratesForZone(key, zone), oz)
@@ -71,10 +73,20 @@ export async function shippingQuotes (pkg, settings, { uspsZone } = {}) {
       dimApplied: oz > pkg.weightOz && !(isUps && oz === 16),
       price: rate?.price ?? null,
       estimate: isUps && rate && !rate.edited,
-      worstZone: isUps || uspsZone == null
+      worstZone: isUps || uspsZone == null,
+      needsDims
     }
   }))
   return quotes.sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity))
+}
+
+/**
+ * Cheapest service we can trust: skip UPS without box dimensions and, with a ship-to
+ * ZIP, worst-zone estimates. Falls back to any priced service.
+ */
+export function pickBest (services, { uspsZone } = {}) {
+  const priced = services.filter((s) => s.price != null)
+  return priced.find((s) => !s.needsDims && !(uspsZone && s.worstZone)) ?? priced[0] ?? null
 }
 
 export async function quote (signals, settings) {
@@ -87,13 +99,11 @@ export async function quote (signals, settings) {
 
   const uspsZone = dest?.zone
   const services = await shippingQuotes(input, settings, { uspsZone })
-  // With a ship-to ZIP, prefer services priced for that destination over worst-zone estimates.
-  const best = services.find((s) => s.price != null && !(uspsZone && s.worstZone)) ??
-    services.find((s) => s.price != null)
+  const best = pickBest(services, { uspsZone })
   if (!best) return { input, dest, taxFill, category, services, error: 'Too heavy for the rate tables (70 lb max).' }
 
   const result = calculate({ ...input, shipping: best.price, category })
   // For a ship-to comparison, also show what the worst-zone label would have been.
-  const worst = uspsZone ? (await shippingQuotes(input, settings)).find((s) => s.price != null) : null
+  const worst = uspsZone ? pickBest(await shippingQuotes(input, settings)) : null
   return { input, dest, taxFill, category, services, best, result, worst }
 }

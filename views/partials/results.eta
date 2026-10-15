@@ -56,6 +56,7 @@
       <span class="cost"><%= s.price == null ? 'n/a' : it.usd(s.price) %></span>
       <span class="badges">
 <% if (s === b) { %><span class="badge good">Cheapest</span><% } %>
+<% if (s.needsDims) { %><span class="badge warn" title="UPS bills by box size; enter L × W × H for a real price">Needs box size</span><% } %>
 <% if (s.estimate) { %><a class="badge warn" href="/rates?service=<%= s.key %>">Placeholder rate</a><% } %>
       </span>
     </li>

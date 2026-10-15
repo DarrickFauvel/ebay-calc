@@ -48,3 +48,14 @@ test('fillTax fills state tax once per ZIP and restores the default when cleared
   assert.equal(fillTax({ shipZip: '021', taxZip: '' }, null, settings), null)
   assert.deepEqual(fillTax({ shipZip: '', taxZip: '02134' }, null, settings), { taxPct: 7.5, taxZip: '' })
 })
+
+test('pickBest skips UPS without box size and worst-zone estimates for a ship-to ZIP', async () => {
+  const { pickBest } = await import('../src/lib/quote.js')
+  const ups = { key: 'ups_ground', price: 7, worstZone: true, needsDims: true }
+  const usps = { key: 'usps_ga', price: 8, worstZone: false, needsDims: false }
+  assert.equal(pickBest([ups, usps]), usps)
+  assert.equal(pickBest([{ ...ups, needsDims: false }, usps]).key, 'ups_ground')
+  assert.equal(pickBest([{ ...ups, needsDims: false }, usps], { uspsZone: 5 }), usps)
+  assert.equal(pickBest([ups, { ...usps, price: null }]), ups) // nothing better: fall back
+  assert.equal(pickBest([{ ...usps, price: null }]), null)
+})
