@@ -12,8 +12,8 @@
 
     <fieldset class="segmented">
       <legend>I want to…</legend>
-      <label><input type="radio" name="mode" value="profit" data-bind="mode"> Hit a target profit</label>
-      <label><input type="radio" name="mode" value="price" data-bind="mode"> Check a list price</label>
+      <label><input type="radio" name="mode" value="profit" data-bind="mode"> Find my price</label>
+      <label><input type="radio" name="mode" value="price" data-bind="mode"> Check a price</label>
     </fieldset>
 
     <div class="field-grid">
@@ -34,17 +34,18 @@
     <fieldset>
       <legend>Packed weight</legend>
       <div class="field-grid">
-        <label class="field"><span>lb</span><input type="number" inputmode="numeric" min="0" max="70" step="1" data-bind="lb"></label>
-        <label class="field"><span>oz</span><input type="number" inputmode="decimal" min="0" max="15.99" step="0.1" data-bind="oz"></label>
+        <span class="affix" data-suffix="lb"><input type="number" inputmode="numeric" min="0" max="70" step="1" aria-label="Pounds" data-bind="lb"></span>
+        <span class="affix" data-suffix="oz"><input type="number" inputmode="decimal" min="0" max="15.99" step="0.1" aria-label="Ounces" data-bind="oz"></span>
       </div>
     </fieldset>
 
     <details<% if (+it.signals.length || +it.signals.width || +it.signals.height) { %> open<% } %>>
-      <summary>Box size <small>(needed for UPS, and for USPS boxes over 1 cubic foot)</small></summary>
+      <summary>Box size</summary>
+      <p class="hint">Needed for UPS, and for USPS boxes over 1 cubic foot.</p>
       <div class="field-grid dims">
-        <label class="field"><span>L in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="length"></label>
-        <label class="field"><span>W in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="width"></label>
-        <label class="field"><span>H in</span><input type="number" inputmode="decimal" min="0" step="0.5" data-bind="height"></label>
+        <span class="affix" data-prefix="L" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Length, inches" data-bind="length"></span>
+        <span class="affix" data-prefix="W" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Width, inches" data-bind="width"></span>
+        <span class="affix" data-prefix="H" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Height, inches" data-bind="height"></span>
       </div>
     </details>
 
@@ -59,7 +60,7 @@
       </label>
       <label class="field">
         <span>Ship to ZIP</span>
-        <input type="text" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="off" placeholder="Worst zone" data-bind="shipZip">
+        <input type="text" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="off" placeholder="Optional" data-bind="shipZip">
       </label>
       <label class="field">
         <span>Buyer sales tax</span>
