@@ -1,7 +1,7 @@
 <% layout('./layout') %>
 <% const s = it.settings %>
 <form class="card narrow"
-      data-signals="<%= JSON.stringify({ originZip: s.origin_zip, uspsZone: s.usps_zone, upsZone: s.ups_zone, upsDimDivisor: s.ups_dim_divisor, taxPct: s.tax_pct, categoryId: s.category_id }) %>"
+      data-signals="<%= JSON.stringify({ originZip: s.origin_zip, uspsZone: String(s.usps_zone), upsZone: String(s.ups_zone), upsDimDivisor: String(s.ups_dim_divisor), taxPct: String(s.tax_pct), categoryId: s.category_id }) %>"
       data-on:submit__prevent="@post('/settings')"
       data-indicator="_busy">
   <h1>Settings</h1>

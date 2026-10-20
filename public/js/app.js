@@ -13,6 +13,16 @@ addEventListener('online', syncOnline)
 addEventListener('offline', syncOnline)
 syncOnline()
 
+// Drop leading zeros from number boxes on blur ("014.99" → "14.99", "00.5" → "0.5").
+// The input event tells Datastar's data-bind about the new value.
+addEventListener('change', ({ target: el }) => {
+  if (el.type !== 'number') return
+  const trimmed = el.value.replace(/^0+(?=\d)/, '')
+  if (trimmed === el.value) return
+  el.value = trimmed
+  el.dispatchEvent(new Event('input', { bubbles: true }))
+})
+
 // Mobile: hide the floating price peek while the full results are on screen.
 // State lives on <html> because Datastar re-renders #peek on every calc.
 const results = document.getElementById('results')
