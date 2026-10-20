@@ -8,18 +8,20 @@ const router = Router()
 
 router.get('/', async (req, res) => {
   const [settings, categories, last] = await Promise.all([getSettings(), listCategories(), getLastInputs()])
+  // Number inputs get string signals: Datastar writes a number signal back into its
+  // input on every keystroke ("01.99" → "1.99"), which moves the cursor to the end.
   const signals = {
-    cost: last?.cost ?? 5,
-    lb: last?.lb ?? 0,
-    oz: last?.oz ?? 12,
-    length: last?.length ?? 0,
-    width: last?.width ?? 0,
-    height: last?.height ?? 0,
+    cost: String(last?.cost ?? 5),
+    lb: String(last?.lb ?? 0),
+    oz: String(last?.oz ?? 12),
+    length: String(last?.length ?? 0),
+    width: String(last?.width ?? 0),
+    height: String(last?.height ?? 0),
     categoryId: settings.category_id ?? categories[0]?.id,
-    taxPct: settings.tax_pct,
+    taxPct: String(settings.tax_pct),
     mode: 'profit',
-    targetProfit: last?.target_profit ?? 10,
-    listPrice: 0,
+    targetProfit: String(last?.target_profit ?? 10),
+    listPrice: '0',
     shipZip: '',
     taxZip: ''
   }
@@ -34,8 +36,8 @@ router.post('/calc', async (req, res) => {
   stream.patchElements(render('partials/results', { q, settings }))
   stream.patchElements(render('partials/peek', { q }))
   // Seed the "list price" box with the solved price when switching modes.
-  if (q.result && q.input.mode === 'profit') stream.patchSignals({ listPrice: q.result.price })
-  if (q.taxFill) stream.patchSignals(q.taxFill)
+  if (q.result && q.input.mode === 'profit') stream.patchSignals({ listPrice: q.result.price.toFixed(2) })
+  if (q.taxFill) stream.patchSignals({ ...q.taxFill, taxPct: String(q.taxFill.taxPct) })
   stream.patchElements(render('partials/ship-to', { dest: q.dest }))
   stream.end()
 })

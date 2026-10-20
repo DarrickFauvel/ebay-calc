@@ -38,7 +38,7 @@ router.post('/settings', async (req, res) => {
       const { zone, effectiveDate } = await fetchUspsMaxZone(next.origin_zip)
       next.usps_zone = zone
       next.zone_checked_at = effectiveDate
-      stream.patchSignals({ uspsZone: zone })
+      stream.patchSignals({ uspsZone: String(zone) })
     } catch (err) {
       stream.patchElements(status(`Saved, but the USPS zone lookup failed: ${err.message}. Set the zone manually.`, 'warn'))
       await updateSettings(next)
@@ -54,7 +54,7 @@ router.post('/settings/zone', async (req, res) => {
   const stream = sse(res)
   try {
     const { zone, effectiveDate } = await fetchUspsMaxZone(req.body.originZip ?? '')
-    stream.patchSignals({ uspsZone: zone })
+    stream.patchSignals({ uspsZone: String(zone) })
     stream.patchElements(status(`Furthest lower-48 USPS zone is ${zone} (chart effective ${effectiveDate}). Save to keep it.`))
   } catch (err) {
     stream.patchElements(status(err.message, 'warn'))
