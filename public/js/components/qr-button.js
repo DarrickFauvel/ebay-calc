@@ -4,7 +4,7 @@ class QrButton extends HTMLElement {
     if (this.button) return
     this.button = document.createElement('button')
     this.button.type = 'button'
-    this.button.className = 'secondary icon-label'
+    this.button.className = 'quiet icon-label'
     this.button.setAttribute('aria-haspopup', 'dialog')
     this.button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3Zm2 2v3h3V5Zm9-2h7v7h-7Zm2 2v3h3V5ZM3 14h7v7H3Zm2 2v3h3v-3Zm9-2h3v3h-3Zm4 0h3v3h-3v-3Zm-4 4h3v3h-3Zm4 0h3v3h-3Z"/></svg><span>QR</span>'
     this.button.addEventListener('click', () => this.open())

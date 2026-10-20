@@ -18,7 +18,7 @@ class InstallButton extends HTMLElement {
     if (!this.button) {
       this.button = document.createElement('button')
       this.button.type = 'button'
-      this.button.className = 'secondary'
+      this.button.className = 'quiet'
       this.button.textContent = 'Install app'
       this.button.addEventListener('click', async () => {
         if (!deferred) return

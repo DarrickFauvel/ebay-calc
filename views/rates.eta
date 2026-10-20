@@ -14,6 +14,12 @@
   <p class="hint">Your worst zone (<strong><%= it.worstZone %></strong>) is highlighted. Rows give the price for packages up to that weight.</p>
   <div class="table-scroll">
     <table class="rates">
+      <colgroup>
+        <col>
+<% for (const z of it.services[it.service].zones) { %>
+        <col class="<%= z === it.worstZone ? 'worst' : '' %>">
+<% } %>
+      </colgroup>
       <thead>
         <tr>
           <th scope="col">Up to</th>
