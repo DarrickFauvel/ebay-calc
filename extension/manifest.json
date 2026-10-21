@@ -3,6 +3,25 @@
   "name": "Ship Pad: copy from eBay",
   "version": "0.1.0",
   "description": "Copy package size, ship-to ZIP and the USPS Ground Advantage price from eBay's shipping calculator into Ship Pad.",
-  "permissions": ["activeTab", "scripting", "storage"],
-  "action": { "default_popup": "popup.html", "default_title": "Ship Pad" }
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Ship Pad"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://localhost:3000/*",
+        "https://ship-pad.darrickdevelops.com/*"
+      ],
+      "js": [
+        "fill.js",
+        "content.js"
+      ]
+    }
+  ]
 }
