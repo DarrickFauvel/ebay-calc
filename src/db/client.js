@@ -19,7 +19,8 @@ const SCHEMA = [
     ups_dim_divisor INTEGER NOT NULL DEFAULT 139,
     tax_pct REAL NOT NULL DEFAULT 7.5,
     category_id INTEGER,
-    zone_checked_at TEXT
+    zone_checked_at TEXT,
+    usps_discount_pct REAL NOT NULL DEFAULT 0
   )`,
   `CREATE TABLE IF NOT EXISTS rates (
     id INTEGER PRIMARY KEY,
@@ -69,6 +70,11 @@ const SCHEMA = [
 
 export async function migrate () {
   await db.batch(SCHEMA, 'write')
+  // Columns added after a table first shipped; CREATE TABLE IF NOT EXISTS won't add them.
+  const { rows } = await db.execute('PRAGMA table_info(settings)')
+  if (!rows.some((r) => r.name === 'usps_discount_pct')) {
+    await db.execute('ALTER TABLE settings ADD COLUMN usps_discount_pct REAL NOT NULL DEFAULT 0')
+  }
 }
 
 export async function getSettings () {
@@ -79,8 +85,8 @@ export async function getSettings () {
 export async function updateSettings (s) {
   await db.execute({
     sql: `UPDATE settings SET origin_zip = ?, usps_zone = ?, ups_zone = ?, ups_dim_divisor = ?,
-          tax_pct = ?, category_id = ?, zone_checked_at = COALESCE(?, zone_checked_at) WHERE id = 1`,
-    args: [s.origin_zip, s.usps_zone, s.ups_zone, s.ups_dim_divisor, s.tax_pct, s.category_id, s.zone_checked_at ?? null]
+          tax_pct = ?, category_id = ?, usps_discount_pct = ?, zone_checked_at = COALESCE(?, zone_checked_at) WHERE id = 1`,
+    args: [s.origin_zip, s.usps_zone, s.ups_zone, s.ups_dim_divisor, s.tax_pct, s.category_id, s.usps_discount_pct, s.zone_checked_at ?? null]
   })
 }
 

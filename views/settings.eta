@@ -1,7 +1,7 @@
 <% layout('./layout') %>
 <% const s = it.settings %>
 <form class="card narrow"
-      data-signals="<%= JSON.stringify({ originZip: s.origin_zip, uspsZone: String(s.usps_zone), upsZone: String(s.ups_zone), upsDimDivisor: String(s.ups_dim_divisor), taxPct: String(s.tax_pct), categoryId: s.category_id }) %>"
+      data-signals="<%= JSON.stringify({ originZip: s.origin_zip, uspsZone: String(s.usps_zone), upsZone: String(s.ups_zone), upsDimDivisor: String(s.ups_dim_divisor), taxPct: String(s.tax_pct), uspsDiscountPct: String(s.usps_discount_pct), categoryId: s.category_id }) %>"
       data-on:submit__prevent="@post('/settings')"
       data-indicator="_busy">
   <h1>Settings</h1>
@@ -28,6 +28,11 @@
         <input type="number" min="2" max="8" step="1" data-bind="upsZone">
       </label>
     </div>
+    <label class="field">
+      <span>eBay Labels discount on USPS</span>
+      <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="90" step="0.1" data-bind="uspsDiscountPct"></span>
+    </label>
+    <p class="hint">Taken off the USPS Commercial rates in Rates to match what eBay charges you for a label. Compare an eBay label quote with the same cell in Rates to find it. Cells you've edited are used as-is.</p>
     <p class="hint">UPS zones differ from USPS zones. Check yours on UPS's zone chart for your ZIP, under "Calculate time and cost" → zone charts.</p>
   </fieldset>
 

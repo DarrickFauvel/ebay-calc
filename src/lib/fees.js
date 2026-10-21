@@ -33,6 +33,12 @@ export function lookupRate (rows, oz) {
   return sorted.find((r) => oz <= r.max_oz) ?? null
 }
 
+/** Take an eBay Labels discount off a published rate. Cells you edited are already what you pay. */
+export function discountRate (rate, pct) {
+  if (!rate || rate.edited || !pct) return rate
+  return { ...rate, price: round2(rate.price * (1 - pct / 100)) }
+}
+
 /** Final value fee on an amount, with an optional lower rate above a threshold. */
 export function finalValueFee (amount, { fvf_pct, tier_threshold, tier_pct }) {
   const rate = fvf_pct / 100

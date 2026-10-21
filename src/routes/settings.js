@@ -28,6 +28,7 @@ router.post('/settings', async (req, res) => {
     ups_zone: clampInt(b.upsZone, 2, 8, current.ups_zone),
     ups_dim_divisor: clampInt(b.upsDimDivisor, 100, 400, current.ups_dim_divisor),
     tax_pct: Math.min(20, Math.max(0, Number(b.taxPct) || 0)),
+    usps_discount_pct: Math.min(90, Math.max(0, Number(b.uspsDiscountPct) || 0)),
     category_id: clampInt(b.categoryId, 1, Number.MAX_SAFE_INTEGER, current.category_id)
   }
 
