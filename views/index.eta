@@ -71,8 +71,15 @@
         <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="20" step="0.01" data-bind="taxPct"></span>
       </label>
     </div>
-    <button type="button" class="secondary" id="fill-from-ebay" hidden>Fill from eBay</button>
-    <p class="hint">Get the eBay label cost from <a href="https://www.ebay.com/shp/calc/rates" target="_blank" rel="noopener">eBay's shipping calculator</a> (USPS Ground Advantage). Leave it empty to estimate from the rate table.</p>
+    <div class="actions">
+      <a class="button secondary" id="open-ebay" href="https://www.ebay.com/shp/calc/rates" target="ebay-calc" rel="noopener">Open eBay calculator</a>
+      <p class="hint">Copy its USPS Ground Advantage price into eBay label cost, or leave that empty to estimate from the rate table.</p>
+    </div>
+    <%/* Revealed by the Chrome extension, which shows what it has captured from eBay. */%>
+    <div id="ebay-sync" class="notice" hidden>
+      <span id="ebay-sync-text"></span>
+      <button type="button" class="secondary" id="fill-from-ebay">Fill now</button>
+    </div>
 <%~ include('./partials/ship-to', { dest: it.q.dest }) %>
     <noscript><button type="submit">Calculate</button></noscript>
   </form>

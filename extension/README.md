@@ -11,8 +11,12 @@ eBay's shipping calculator into Ship Pad's calculator.
 
 ## Use
 
-1. On [eBay's shipping calculator](https://www.ebay.com/shp/calc/rates), fill in the package and click **Calculate**.
-2. Click the extension icon. It copies straight away (**Copy from eBay** redoes it).
-3. Switch to Ship Pad's calculator (https://ship-pad.darrickdevelops.com or localhost:3000) and click **Fill from eBay** on the page, or click the extension icon. The icon copies on eBay and fills on Ship Pad by itself.
+1. Open eBay's shipping calculator (Ship Pad's **Open eBay calculator** button opens it in a new tab).
+2. Click the Ship Pad icon. Ship Pad slides open in Chrome's side panel, next to eBay. It opens the Ship Pad address you used last (the live site, localhost:3000 or a Codespaces address), so open Ship Pad in a normal tab once first.
+3. Fill in the package on eBay. The side panel's **From eBay** box updates as you type.
+4. Click **Calculate** on eBay. The box picks up the USPS Ground Advantage price.
+5. Click into the side panel. It fills weight, box, ship-to ZIP and the eBay label cost automatically. **Fill now** does the same by hand.
 
-The icon only reads the tab you click it on (`activeTab`). The page button needs access to Ship Pad's two addresses, which Chrome lists as the extension's site access.
+On any other tab the icon opens the popup: on a Ship Pad tab it fills in what was captured from eBay.
+
+The extension runs only on eBay's calculator (`ebay.com/shp/calc/`), Ship Pad's addresses (including Codespaces `*.app.github.dev`), and on any tab when you click its icon.

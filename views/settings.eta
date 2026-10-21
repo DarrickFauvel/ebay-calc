@@ -67,7 +67,7 @@
       <li>Unzip it. You get a <code>ship-pad-extension</code> folder.</li>
       <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
       <li>Click <strong>Load unpacked</strong> and pick that folder, then pin it from the puzzle-piece menu.</li>
-      <li>On eBay, click Calculate, then the extension's <strong>Copy from eBay</strong>. Here, click <strong>Fill Ship Pad</strong>.</li>
+      <li>Open Ship Pad's calculator once, then click <strong>Open eBay calculator</strong>. On eBay, click the extension's icon: Ship Pad opens in Chrome's side panel. Its "From eBay" box updates as you type on eBay, and after you click Calculate, clicking into the panel fills everything in.</li>
     </ol>
   </fieldset>
 
