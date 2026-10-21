@@ -67,8 +67,10 @@
       <li>Unzip it. You get a <code>ship-pad-extension</code> folder.</li>
       <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
       <li>Click <strong>Load unpacked</strong> and pick that folder, then pin it from the puzzle-piece menu.</li>
+      <li>Click the extension's <strong>Details</strong> and turn on <strong>Allow User Scripts</strong>. Its scripts for eBay's pages then load from Ship Pad, so most updates arrive on their own.</li>
       <li>Open Ship Pad's calculator once, then click <strong>Open eBay calculator</strong>. On eBay, click the extension's icon: Ship Pad opens in Chrome's side panel. Its "From eBay" box updates as you type on eBay, and after you click Calculate, clicking into the panel fills everything in.</li>
     </ol>
+    <p class="hint">To update the rest of the extension, unzip the new download over the same folder and click ↻ on its card in <code>chrome://extensions</code>. There's no need to remove it first.</p>
   </fieldset>
 
   <div class="actions">

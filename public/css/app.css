@@ -377,7 +377,14 @@
     & .peek-label { font-size: 0.85rem; font-weight: 600; opacity: 0.85; }
     & .peek-meta { font-size: 0.8rem; opacity: 0.85; margin-inline-start: auto; }
     & .loss { color: inherit; text-decoration: underline wavy; }
+    & .peek-pkg { display: none; flex-basis: 100%; font-size: 0.8rem; opacity: 0.85; }
     @media (min-width: 52rem) { display: none; }
+    /* Chrome side panel (set by the extension): a sticky bar at the top that never hides. */
+    [data-panel] & {
+      position: sticky; inset-block-start: 0.5rem; display: flex;
+      margin-block-end: 0.75rem; translate: none; opacity: 1; pointer-events: auto;
+      & .peek-pkg { display: block; }
+    }
   }
   .headline {
     display: grid; gap: 0.25rem;

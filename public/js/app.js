@@ -31,3 +31,19 @@ if (results && 'IntersectionObserver' in window) {
     document.documentElement.toggleAttribute('data-results-visible', entry.isIntersecting)
   }, { threshold: 0.15 }).observe(results)
 }
+
+// Flash a value when it changes (a recalc, or a fill from eBay). Tracked by its data-flash
+// key rather than the node, since Datastar may morph or replace it.
+const seen = new Map()
+const flashChanged = () => {
+  for (const el of document.querySelectorAll('[data-flash]')) {
+    const key = el.dataset.flash
+    if (seen.has(key) && seen.get(key) !== el.textContent) {
+      el.animate([{ background: 'color-mix(in oklab, var(--good) 35%, transparent)' }, { background: 'transparent' }], { duration: 1200, easing: 'ease-out' })
+    }
+    seen.set(key, el.textContent)
+  }
+}
+const main = document.querySelector('main')
+if (main) new MutationObserver(flashChanged).observe(main, { childList: true, characterData: true, subtree: true })
+flashChanged()

@@ -19,3 +19,6 @@ chrome.storage.local.get(['padUrl', 'panelSite']).then(({ padUrl, panelSite }) =
   }
   show(panelSite)
 })
+
+// Without the userScripts permission, eBay's pages run the bundled scripts (see background.js).
+try { chrome.userScripts.getScripts() } catch { $('no-user-scripts').hidden = false }

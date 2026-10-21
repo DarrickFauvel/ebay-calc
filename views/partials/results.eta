@@ -6,11 +6,11 @@
   <div class="headline">
 <% if (q.input.mode === 'profit') { %>
     <p class="lead">List at</p>
-    <p class="price"><copy-text value="<%= r.charm.toFixed(2) %>"><%= it.usd(r.charm) %></copy-text></p>
+    <p class="price" data-flash="price"><copy-text value="<%= r.charm.toFixed(2) %>"><%= it.usd(r.charm) %></copy-text></p>
     <p class="sub">Exact price: <copy-text value="<%= r.price.toFixed(2) %>"><%= it.usd(r.price) %></copy-text>. Tap a price to copy it. You keep at least <%= it.usd(r.profit) %>; the breakdown below uses the exact price.</p>
 <% } else { %>
     <p class="lead">You'd profit</p>
-    <p class="price <%= r.profit < 0 ? 'loss' : '' %>"><%= it.usd(r.profit) %></p>
+    <p class="price <%= r.profit < 0 ? 'loss' : '' %>" data-flash="price"><%= it.usd(r.profit) %></p>
     <p class="sub">at <%= it.usd(r.price) %> with free shipping, a <%= it.pct(r.margin) %> margin.</p>
 <% } %>
   </div>

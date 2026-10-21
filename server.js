@@ -32,6 +32,8 @@ app.get('/extension.zip', async (req, res) => {
   const files = await Promise.all(names.map(async (name) => ({ name: `ship-pad-extension/${name}`, data: await readFile(new URL(name, dir)) })))
   res.attachment('ship-pad-extension.zip').type('application/zip').send(writeZip(files))
 })
+// The extension fetches its eBay-page scripts from here (see extension/background.js), so they update without a reinstall.
+app.use('/extension', express.static('extension', { maxAge: 0 }))
 app.get('/offline', (req, res) => res.send(render('offline', { title: 'Offline' })))
 
 app.use((err, req, res, next) => {

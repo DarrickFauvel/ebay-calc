@@ -1,4 +1,6 @@
 <% layout('./layout') %>
+<%/* First in <main> so it can stick to the top in the side panel; on phones it's fixed to the bottom. */%>
+<%~ include('./partials/peek', { q: it.q, usd: it.usd, pct: it.pct, weight: it.weight }) %>
 <div class="calc-layout">
   <form id="calc" class="card"
         data-signals="<%= JSON.stringify(it.signals) %>"
@@ -12,7 +14,7 @@
 
     <%/* eBay first: in the side panel, the package comes from eBay. The box is revealed by the Chrome extension. */%>
     <div id="ebay-sync" class="notice" hidden>
-      <span id="ebay-sync-text"></span>
+      <span id="ebay-sync-text" data-flash="ebay"></span>
       <button type="button" class="secondary" id="fill-from-ebay">Fill now</button>
     </div>
     <a class="button secondary" id="open-ebay" href="https://www.ebay.com/shp/calc/rates" target="ebay-calc" rel="noopener">Open eBay calculator</a>
@@ -87,4 +89,3 @@
 
 <%~ include('./partials/results', { q: it.q, settings: it.settings, usd: it.usd, pct: it.pct, weight: it.weight }) %>
 </div>
-<%~ include('./partials/peek', { q: it.q, usd: it.usd, pct: it.pct }) %>

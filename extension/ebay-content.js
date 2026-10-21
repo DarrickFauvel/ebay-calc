@@ -9,7 +9,8 @@ function capture () {
     const key = JSON.stringify(data)
     if (!data || key === last) return
     last = key
-    chrome.storage.local.set({ pkg: { ...data, at: Date.now() } })
+    // Runs as a user script, which can't use chrome.storage, so background.js saves it.
+    chrome.runtime.sendMessage({ pkg: { ...data, at: Date.now() } })
   }, 150)
 }
 

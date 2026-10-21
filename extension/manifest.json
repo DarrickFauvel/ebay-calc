@@ -1,17 +1,25 @@
 {
   "manifest_version": 3,
   "name": "Ship Pad: copy from eBay",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Copy package size, ship-to ZIP and the USPS Ground Advantage price from eBay's shipping calculator into Ship Pad.",
   "permissions": [
     "activeTab",
     "scripting",
     "storage",
-    "sidePanel"
+    "sidePanel",
+    "userScripts"
   ],
   "host_permissions": [
-    "https://www.ebay.com/shp/calc/*"
+    "https://www.ebay.com/shp/calc/*",
+    "https://www.ebay.com/lstng*",
+    "http://localhost:3000/*",
+    "https://ship-pad.darrickdevelops.com/*",
+    "https://*.app.github.dev/*"
   ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
   "background": {
     "service_worker": "background.js"
   },
@@ -20,15 +28,6 @@
     "default_title": "Ship Pad"
   },
   "content_scripts": [
-    {
-      "matches": [
-        "https://www.ebay.com/shp/calc/*"
-      ],
-      "js": [
-        "ebay.js",
-        "ebay-content.js"
-      ]
-    },
     {
       "matches": [
         "http://localhost:3000/*",
