@@ -1,6 +1,6 @@
 // Glue between the DB (rates, settings, categories) and the pure fee math.
 import { SERVICES, getCategory, listCategories, ratesForZone } from '../db/client.js'
-import { USPS_DIM, billableOz, calculate, lookupRate } from './fees.js'
+import { USPS_DIM, billableOz, calculate, discountRate, lookupRate } from './fees.js'
 import { stateForZip } from './states.js'
 import { fetchZoneChart, zoneForZip } from './zones.js'
 
@@ -22,6 +22,7 @@ export function parseInputs (s = {}) {
     mode: s.mode === 'price' ? 'price' : 'profit',
     targetProfit: num(s.targetProfit),
     listPrice: Math.max(0, num(s.listPrice)),
+    labelCost: Math.max(0, num(s.labelCost)),
     shipZip: String(s.shipZip ?? '').replace(/\D/g, '').slice(0, 5),
     taxZip: String(s.taxZip ?? '')
   }
@@ -64,16 +65,20 @@ export async function shippingQuotes (pkg, settings, { uspsZone } = {}) {
     const needsDims = isUps && !(pkg.length && pkg.width && pkg.height)
     let oz = billableOz(pkg, dim)
     if (isUps && oz > 0) oz = Math.max(oz, 16) // UPS bills a 1 lb minimum
-    const rate = lookupRate(await ratesForZone(key, zone), oz)
+    let rate = lookupRate(await ratesForZone(key, zone), oz)
+    if (!isUps) rate = discountRate(rate, settings.usps_discount_pct)
+    // A label cost copied from eBay is the real Ground Advantage price for this package.
+    const ebay = key === 'usps_ga' && pkg.labelCost > 0
     return {
       key,
       name: svc.name,
       zone,
       billableOz: oz,
       dimApplied: oz > pkg.weightOz && !(isUps && oz === 16),
-      price: rate?.price ?? null,
+      price: ebay ? pkg.labelCost : rate?.price ?? null,
+      ebay,
       estimate: isUps && rate && !rate.edited,
-      worstZone: isUps || uspsZone == null,
+      worstZone: !ebay && (isUps || uspsZone == null),
       needsDims
     }
   }))
@@ -81,12 +86,12 @@ export async function shippingQuotes (pkg, settings, { uspsZone } = {}) {
 }
 
 /**
- * Cheapest service we can trust: skip UPS without box dimensions and, with a ship-to
+ * An eBay label cost wins. Otherwise the cheapest service we can trust: skip UPS without box dimensions and, with a ship-to
  * ZIP, worst-zone estimates. Falls back to any priced service.
  */
 export function pickBest (services, { uspsZone } = {}) {
   const priced = services.filter((s) => s.price != null)
-  return priced.find((s) => !s.needsDims && !(uspsZone && s.worstZone)) ?? priced[0] ?? null
+  return priced.find((s) => s.ebay) ?? priced.find((s) => !s.needsDims && !(uspsZone && s.worstZone)) ?? priced[0] ?? null
 }
 
 export async function quote (signals, settings) {
@@ -104,6 +109,6 @@ export async function quote (signals, settings) {
 
   const result = calculate({ ...input, shipping: best.price, category })
   // For a ship-to comparison, also show what the worst-zone label would have been.
-  const worst = uspsZone ? pickBest(await shippingQuotes(input, settings)) : null
+  const worst = uspsZone && !best.ebay ? pickBest(await shippingQuotes(input, settings)) : null
   return { input, dest, taxFill, category, services, best, result, worst }
 }

@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { fillTax } from '../src/lib/quote.js'
+import { fillTax, pickBest } from '../src/lib/quote.js'
 import { stateForZip } from '../src/lib/states.js'
 import { zoneForZip } from '../src/lib/zones.js'
 
@@ -58,4 +58,11 @@ test('pickBest skips UPS without box size and worst-zone estimates for a ship-to
   assert.equal(pickBest([{ ...ups, needsDims: false }, usps], { uspsZone: 5 }), usps)
   assert.equal(pickBest([ups, { ...usps, price: null }]), ups) // nothing better: fall back
   assert.equal(pickBest([{ ...usps, price: null }]), null)
+})
+
+test('pickBest prefers an eBay label cost over cheaper table rates', () => {
+  const ups = { key: 'ups_ground', price: 7, needsDims: false, worstZone: true }
+  const ga = { key: 'usps_ga', price: 9.5, ebay: true, worstZone: false }
+  assert.equal(pickBest([ups, ga]), ga)
+  assert.equal(pickBest([ups, { ...ga, ebay: false }]), ups)
 })

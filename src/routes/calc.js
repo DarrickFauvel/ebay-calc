@@ -22,6 +22,7 @@ router.get('/', async (req, res) => {
     mode: 'profit',
     targetProfit: String(last?.target_profit ?? 10),
     listPrice: '0',
+    labelCost: '',
     shipZip: '',
     taxZip: ''
   }

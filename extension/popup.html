@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset="utf-8">
+<style>
+  body { font: 14px/1.4 system-ui, sans-serif; margin: 12px; width: 16rem; color: #222; background: #fff }
+  button { display: block; width: 100%; min-height: 2.75rem; margin: 0 0 8px; font: inherit; border: 1px solid #999; border-radius: 6px; background: #f4f4f4; cursor: pointer }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; margin: 8px 0 0 }
+  dt { color: #666 }
+  dd { margin: 0 }
+  #status { margin: 8px 0 0; color: #666 }
+</style>
+<button id="copy">Copy from eBay</button>
+<button id="fill">Fill Ship Pad</button>
+<dl id="saved"></dl>
+<p id="status" role="status"></p>
+<script src="popup.js"></script>

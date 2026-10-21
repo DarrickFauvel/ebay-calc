@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  billableOz, breakdown, calculate, charmPrice, finalValueFee, lookupRate, round2, solvePrice, USPS_DIM
+  billableOz, breakdown, calculate, charmPrice, discountRate, finalValueFee, lookupRate, round2, solvePrice, USPS_DIM
 } from '../src/lib/fees.js'
 import { isContiguous, maxContiguousZone } from '../src/lib/zones.js'
 
@@ -73,6 +73,13 @@ test('lookupRate picks the first weight step that fits', () => {
   assert.equal(lookupRate(rows, 4).price, 5)
   assert.equal(lookupRate(rows, 4.1).price, 8)
   assert.equal(lookupRate(rows, 33), null)
+})
+
+test('discountRate takes a percentage off unedited rates only', () => {
+  assert.equal(discountRate({ price: 8.95 }, 10).price, 8.06)
+  assert.equal(discountRate({ price: 8.95, edited: 1 }, 10).price, 8.95)
+  assert.equal(discountRate({ price: 8.95 }, 0).price, 8.95)
+  assert.equal(discountRate(null, 10), null)
 })
 
 test('max zone ignores AK/HI/territories/military', () => {
