@@ -24,20 +24,6 @@ function readEbay () {
   return { ...pkg, labelCost: price }
 }
 
-// Runs in the Ship Pad tab. Datastar's data-bind picks values up from input events.
-function fillShipPad (data) {
-  const form = document.getElementById('calc')
-  if (!form) return { error: "Open Ship Pad's calculator first." }
-  for (const [name, value] of Object.entries(data)) {
-    const el = form.querySelector(`[data-bind="${name}"]`)
-    if (!el) continue
-    el.value = value || (name === 'shipZip' || name === 'labelCost' ? '' : '0')
-    el.dispatchEvent(new Event('input', { bubbles: true }))
-  }
-  if (+data.length || +data.width || +data.height) form.querySelector('details')?.setAttribute('open', '')
-  return { ok: true }
-}
-
 const $ = (id) => document.getElementById(id)
 const say = (text) => { $('status').textContent = text }
 
@@ -82,4 +68,11 @@ $('fill').addEventListener('click', async () => {
   say(res.error ?? 'Filled.')
 })
 
-chrome.storage.local.get('pkg').then(({ pkg }) => show(pkg))
+// Clicking the icon does the obvious thing for the tab: copy on eBay, fill on Ship Pad.
+chrome.storage.local.get('pkg').then(async ({ pkg }) => {
+  show(pkg)
+  const page = await run(() => document.querySelector('[data-testid="shipping-details"]') ? 'ebay' : document.getElementById('calc') ? 'shippad' : null)
+  if (page === 'ebay') $('copy').click()
+  else if (page === 'shippad') $('fill').click()
+  else say("Open eBay's shipping calculator or Ship Pad.")
+})
