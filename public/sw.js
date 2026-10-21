@@ -1,6 +1,6 @@
 // App-shell service worker: cache static assets, network-first for pages,
 // offline fallback when a page can't be fetched. POSTs (SSE calcs) pass through.
-const VERSION = 'v8'
+const VERSION = 'v9'
 const CACHE = `shippad-${VERSION}`
 const SHELL = [
   '/offline',

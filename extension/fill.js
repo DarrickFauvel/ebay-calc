@@ -8,6 +8,5 @@ function fillShipPad (data) {
     el.value = value || (name === 'shipZip' || name === 'labelCost' ? '' : '0')
     el.dispatchEvent(new Event('input', { bubbles: true }))
   }
-  if (+data.length || +data.width || +data.height) form.querySelector('details')?.setAttribute('open', '')
   return { ok: true }
 }

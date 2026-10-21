@@ -10,6 +10,13 @@
     <p class="notice">Using zone <%= it.settings.usps_zone %> as the worst case. <a href="/settings">Set your ZIP (where you ship from)</a> to compute your actual furthest lower-48 zone.</p>
 <% } %>
 
+    <%/* eBay first: in the side panel, the package comes from eBay. The box is revealed by the Chrome extension. */%>
+    <div id="ebay-sync" class="notice" hidden>
+      <span id="ebay-sync-text"></span>
+      <button type="button" class="secondary" id="fill-from-ebay">Fill now</button>
+    </div>
+    <a class="button secondary" id="open-ebay" href="https://www.ebay.com/shp/calc/rates" target="ebay-calc" rel="noopener">Open eBay calculator</a>
+
     <fieldset class="segmented">
       <legend>I want to…</legend>
       <label><input type="radio" name="mode" value="profit" data-bind="mode"> Find my price</label>
@@ -29,27 +36,6 @@
         <span>List price</span>
         <span class="affix" data-prefix="$"><input type="number" inputmode="decimal" min="0" step="0.01" data-bind="listPrice"></span>
       </label>
-    </div>
-
-    <fieldset>
-      <legend>Packed weight</legend>
-      <div class="field-grid">
-        <span class="affix" data-suffix="lb"><input type="number" inputmode="numeric" min="0" max="70" step="1" aria-label="Pounds" data-bind="lb"></span>
-        <span class="affix" data-suffix="oz"><input type="number" inputmode="decimal" min="0" max="15.99" step="0.1" aria-label="Ounces" data-bind="oz"></span>
-      </div>
-    </fieldset>
-
-    <details<% if (+it.signals.length || +it.signals.width || +it.signals.height) { %> open<% } %>>
-      <summary>Box size</summary>
-      <p class="hint">Needed for UPS, and for USPS boxes over 1 cubic foot.</p>
-      <div class="field-grid dims">
-        <span class="affix" data-prefix="L" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Length, inches" data-bind="length"></span>
-        <span class="affix" data-prefix="W" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Width, inches" data-bind="width"></span>
-        <span class="affix" data-prefix="H" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Height, inches" data-bind="height"></span>
-      </div>
-    </details>
-
-    <div class="field-grid">
       <label class="field span-all">
         <span>eBay category</span>
         <select data-bind="categoryId">
@@ -58,29 +44,44 @@
 <% } %>
         </select>
       </label>
-      <label class="field">
-        <span>Ship to ZIP</span>
-        <input type="text" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="off" placeholder="Optional" data-bind="shipZip">
-      </label>
-      <label class="field">
-        <span>eBay label cost</span>
-        <span class="affix" data-prefix="$"><input type="number" inputmode="decimal" min="0" step="0.01" placeholder="Optional" data-bind="labelCost"></span>
-      </label>
-      <label class="field">
-        <span>Buyer sales tax</span>
-        <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="20" step="0.01" data-bind="taxPct"></span>
-      </label>
     </div>
-    <div class="actions">
-      <a class="button secondary" id="open-ebay" href="https://www.ebay.com/shp/calc/rates" target="ebay-calc" rel="noopener">Open eBay calculator</a>
-      <p class="hint">Copy its USPS Ground Advantage price into eBay label cost, or leave that empty to estimate from the rate table.</p>
-    </div>
-    <%/* Revealed by the Chrome extension, which shows what it has captured from eBay. */%>
-    <div id="ebay-sync" class="notice" hidden>
-      <span id="ebay-sync-text"></span>
-      <button type="button" class="secondary" id="fill-from-ebay">Fill now</button>
-    </div>
+
+    <%/* Mostly filled from eBay, so it stays closed; the summary shows what's in it. */%>
+    <details class="package">
+      <summary>Package &amp; shipping <span class="summary-meta" data-text="[(+$lb || 0) + ' lb ' + (+$oz || 0) + ' oz', +$length ? $length + '×' + $width + '×' + $height + ' in' : '', $shipZip ? 'to ' + $shipZip : '', $labelCost ? 'label $' + $labelCost : 'label estimated'].filter(Boolean).join(' · ')"></span></summary>
+      <fieldset>
+        <legend>Packed weight</legend>
+        <div class="field-grid">
+          <span class="affix" data-suffix="lb"><input type="number" inputmode="numeric" min="0" max="70" step="1" aria-label="Pounds" data-bind="lb"></span>
+          <span class="affix" data-suffix="oz"><input type="number" inputmode="decimal" min="0" max="15.99" step="0.1" aria-label="Ounces" data-bind="oz"></span>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Box size</legend>
+        <p class="hint">Needed for UPS, and for USPS boxes over 1 cubic foot.</p>
+        <div class="field-grid dims">
+          <span class="affix" data-prefix="L" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Length, inches" data-bind="length"></span>
+          <span class="affix" data-prefix="W" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Width, inches" data-bind="width"></span>
+          <span class="affix" data-prefix="H" data-suffix="in"><input type="number" inputmode="decimal" min="0" step="0.5" aria-label="Height, inches" data-bind="height"></span>
+        </div>
+      </fieldset>
+      <div class="field-grid">
+        <label class="field">
+          <span>Ship to ZIP</span>
+          <input type="text" inputmode="numeric" pattern="\d{5}" maxlength="5" autocomplete="off" placeholder="Optional" data-bind="shipZip">
+        </label>
+        <label class="field">
+          <span>eBay label cost</span>
+          <span class="affix" data-prefix="$"><input type="number" inputmode="decimal" min="0" step="0.01" placeholder="Optional" data-bind="labelCost"></span>
+        </label>
+        <label class="field">
+          <span>Buyer sales tax</span>
+          <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="20" step="0.01" data-bind="taxPct"></span>
+        </label>
+      </div>
+      <p class="hint">eBay label cost is eBay's USPS Ground Advantage price. Leave it empty to estimate from the rate table.</p>
 <%~ include('./partials/ship-to', { dest: it.q.dest }) %>
+    </details>
     <noscript><button type="submit">Calculate</button></noscript>
   </form>
 
