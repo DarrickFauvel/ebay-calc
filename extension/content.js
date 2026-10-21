@@ -35,8 +35,8 @@ function autoFill () {
 
 if (box) {
   box.hidden = false
-  // Remember this Ship Pad's address so the side panel opens the same one.
-  if (window === top) chrome.storage.local.set({ padUrl: location.origin + '/' })
+  // Remember the dev Ship Pad's address (localhost or Codespaces) for the side panel's Dev/Live switch.
+  if (window === top && location.hostname !== 'ship-pad.darrickdevelops.com') chrome.storage.local.set({ padUrl: location.origin + '/' })
   button.addEventListener('click', fill)
   chrome.storage.onChanged.addListener((changes) => {
     if (!changes.pkg) return
