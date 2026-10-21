@@ -237,7 +237,9 @@
     display: inline-flex; align-items: center;
     min-block-size: var(--tap); padding: 0.6rem 1.1rem; border-radius: 0.6rem;
     background: var(--accent); color: var(--accent-text); font-weight: 600; text-decoration: none;
+    &.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
   }
+  #ebay-sync { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; &[hidden] { display: none; } }
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
 
   .header-actions { display: flex; align-items: center; gap: 0.5rem; }
