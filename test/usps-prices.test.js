@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { deflateRawSync } from 'node:zlib'
+import { writeZip } from '../src/lib/zip.js'
 import {
   changeId, currentChange, diffRates, parseGaCommercialCsv, parsePriceChangePage, readZipEntry
 } from '../src/lib/usps-prices.js'
@@ -103,4 +104,10 @@ test('readZipEntry inflates a named entry', () => {
   const buf = zip('USPS Ground Advantage Comm.csv', CSV)
   assert.equal(readZipEntry(buf, /Ground Advantage Comm\.csv$/).toString(), CSV)
   assert.equal(readZipEntry(buf, /Retail/), null)
+})
+
+test('writeZip round-trips through readZipEntry', () => {
+  const buf = writeZip([{ name: 'a/manifest.json', data: Buffer.from('{"x":1}') }, { name: 'a/popup.js', data: Buffer.from('ok()') }])
+  assert.equal(readZipEntry(buf, /manifest\.json$/).toString(), '{"x":1}')
+  assert.equal(readZipEntry(buf, /popup\.js$/).toString(), 'ok()')
 })

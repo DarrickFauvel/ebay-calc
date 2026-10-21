@@ -59,6 +59,18 @@
     <p class="hint">eBay charges its final value fee on the sales tax as well, so a higher tax rate raises your fees. The US average combined rate is about 7–8%. UPS dimensional weight is L×W×H ÷ divisor (139 is standard).</p>
   </fieldset>
 
+  <fieldset>
+    <legend>Chrome extension</legend>
+    <p>Copies weight, box size, ship-to ZIP and the USPS Ground Advantage price from eBay's shipping calculator into this calculator.</p>
+    <p><a href="/extension.zip" download>Download the extension (.zip)</a></p>
+    <ol class="hint">
+      <li>Unzip it. You get a <code>ship-pad-extension</code> folder.</li>
+      <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
+      <li>Click <strong>Load unpacked</strong> and pick that folder, then pin it from the puzzle-piece menu.</li>
+      <li>On eBay, click Calculate, then the extension's <strong>Copy from eBay</strong>. Here, click <strong>Fill Ship Pad</strong>.</li>
+    </ol>
+  </fieldset>
+
   <div class="actions">
     <button type="submit" data-attr:disabled="$_busy">Save settings</button>
     <p id="settings-status" class="status" role="status"></p>
