@@ -6,8 +6,8 @@
   <div class="headline">
 <% if (q.input.mode === 'profit') { %>
     <p class="lead">List at</p>
-    <p class="price"><copy-text value="<%= r.price.toFixed(2) %>"><%= it.usd(r.price) %></copy-text></p>
-    <p class="sub">or <copy-text value="<%= r.charm.toFixed(2) %>"><%= it.usd(r.charm) %></copy-text> to end in .99. Tap a price to copy it. You keep <%= it.usd(r.profit) %>.</p>
+    <p class="price"><copy-text value="<%= r.charm.toFixed(2) %>"><%= it.usd(r.charm) %></copy-text></p>
+    <p class="sub">Exact price: <copy-text value="<%= r.price.toFixed(2) %>"><%= it.usd(r.price) %></copy-text>. Tap a price to copy it. You keep at least <%= it.usd(r.profit) %>; the breakdown below uses the exact price.</p>
 <% } else { %>
     <p class="lead">You'd profit</p>
     <p class="price <%= r.profit < 0 ? 'loss' : '' %>"><%= it.usd(r.profit) %></p>
@@ -28,6 +28,9 @@
 <% } %>
   </div>
 
+  <%/* data-preserve-attr keeps a section open while Datastar re-renders the results on every keystroke. */%>
+  <details id="fee-details" data-preserve-attr="open">
+    <summary>Fee details <span class="summary-meta"><%= it.usd(r.fees) %> in eBay fees, <%= it.pct(r.effectiveFeePct) %> of the price</span></summary>
   <dl class="breakdown">
     <div><dt>List price (free shipping)</dt><dd><%= it.usd(r.price) %></dd></div>
     <div class="muted"><dt>+ Sales tax eBay collects &amp; remits (<%= q.input.taxPct %>%)</dt><dd><%= it.usd(r.salesTax) %></dd></div>
@@ -40,13 +43,13 @@
     <div class="total <%= r.profit < 0 ? 'loss' : '' %>"><dt>Profit, <%= it.pct(r.margin) %> margin</dt><dd><%= it.usd(r.profit) %></dd></div>
     <div class="muted"><dt>Fees as % of list price</dt><dd><%= it.pct(r.effectiveFeePct) %></dd></div>
   </dl>
+  </details>
 
-  <div>
-<% if (d) { %>
-    <h2>Shipping to <%= d.zip %><%= d.state ? ` (${d.state})` : '' %></h2>
-<% } else { %>
-    <h2>Shipping to the furthest lower-48 zone</h2>
-<% } %>
+  <details id="services" data-preserve-attr="open">
+    <summary>Shipping services to <%= d ? `${d.zip}${d.state ? ` (${d.state})` : ''}` : 'the furthest lower-48 zone' %>
+      <span class="summary-meta"><%= b.name %> <%= it.usd(b.price) %></span>
+<% if (b.estimate) { %>      <span class="badge warn">Placeholder rate</span>
+<% } %>    </summary>
     <ul class="services">
 <% for (const s of q.services) { %>
       <li class="service">
@@ -61,6 +64,6 @@
       </li>
 <% } %>
     </ul>
-  </div>
+  </details>
 <% } %>
 </section>

@@ -3,7 +3,7 @@
 <% if (q.error) { %>
   <span class="peek-label">Enter weight to price</span>
 <% } else if (q.input.mode === 'profit') { %>
-  <span class="peek-label">List at</span><strong><%= it.usd(q.result.price) %></strong><span class="peek-meta">pad <%= it.usd(q.result.shipPad) %> · see breakdown</span>
+  <span class="peek-label">List at</span><strong><%= it.usd(q.result.charm) %></strong><span class="peek-meta">pad <%= it.usd(q.result.shipPad) %> · see breakdown</span>
 <% } else { %>
   <span class="peek-label">Profit</span><strong class="<%= q.result.profit < 0 ? 'loss' : '' %>"><%= it.usd(q.result.profit) %></strong><span class="peek-meta"><%= it.pct(q.result.margin) %> margin · see breakdown</span>
 <% } %>
