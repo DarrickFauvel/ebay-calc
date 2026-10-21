@@ -1,4 +1,7 @@
 // On Ship Pad: show what's been captured from eBay, and fill it in when you come back to this tab.
+// In Chrome's side panel Ship Pad is framed; app.css uses this for the sticky top bar.
+const inPanel = window !== top
+document.documentElement.toggleAttribute('data-panel', inPanel)
 const box = document.getElementById('ebay-sync')
 const text = document.getElementById('ebay-sync-text')
 const button = document.getElementById('fill-from-ebay')
@@ -36,13 +39,14 @@ function autoFill () {
 if (box) {
   box.hidden = false
   // Remember the dev Ship Pad's address (localhost or Codespaces) for the side panel's Dev/Live switch.
-  if (window === top && location.hostname !== 'ship-pad.darrickdevelops.com') chrome.storage.local.set({ padUrl: location.origin + '/' })
+  if (!inPanel && location.hostname !== 'ship-pad.darrickdevelops.com') chrome.storage.local.set({ padUrl: location.origin + '/' })
   button.addEventListener('click', fill)
   chrome.storage.onChanged.addListener((changes) => {
     if (!changes.pkg) return
     pkg = changes.pkg.newValue ?? null
     render()
-    if (document.hasFocus()) autoFill()
+    // The panel sits next to eBay, so fill it right away instead of waiting for you to click in.
+    if (document.hasFocus() || inPanel) autoFill()
   })
   addEventListener('focus', autoFill)
   document.addEventListener('visibilitychange', autoFill)

@@ -1,16 +1,86 @@
 // The icon opens Ship Pad in the side panel on eBay's calculator, and the popup everywhere else.
+// The panel is window-wide (manifest side_panel), so it stays open when you switch to the listing tab:
+// eBay's pages keep their width (no reflow jump) and Ship Pad isn't reloaded.
 const CALC = 'https://www.ebay.com/shp/calc/'
+const LIVE = 'https://ship-pad.darrickdevelops.com/'
+
+// The scripts that run on eBay's pages. They're fetched from Ship Pad on every eBay page load and registered
+// as user scripts, so a deploy updates them without reloading the extension. The bundled copies are the fallback.
+const SCRIPTS = [
+  { id: 'calc', matches: [`${CALC}*`], files: ['ebay.js', 'ebay-content.js'] },
+  { id: 'listing', matches: ['https://www.ebay.com/lstng*'], files: ['ebay-listing.js'] }
+]
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
 
-// tab.url is only visible for eBay's calculator (host_permissions), so other tabs read as "not eBay".
+// Needs "Allow User Scripts" on the extension's details page (Chrome 138+) or Developer mode (older Chrome).
+function hasUserScripts () {
+  try {
+    chrome.userScripts.getScripts()
+    return true
+  } catch {
+    return false
+  }
+}
+
+// Same choice as the side panel: the dev Ship Pad unless you picked live (or never opened dev).
+async function base () {
+  const { padUrl, panelSite } = await chrome.storage.local.get(['padUrl', 'panelSite'])
+  return panelSite === 'live' || !padUrl ? LIVE : padUrl
+}
+
+async function fetchCode () {
+  const root = await base()
+  const get = (file) => fetch(new URL(`extension/${file}`, root), { cache: 'no-store', credentials: 'include' })
+    .then((r) => r.ok ? r.text() : Promise.reject(new Error(`${file}: HTTP ${r.status}`)))
+  try {
+    return await Promise.all(SCRIPTS.map((s) => Promise.all(s.files.map(get))))
+  } catch (err) {
+    console.warn(`Ship Pad: couldn't fetch eBay scripts from ${root}`, err)
+    return null
+  }
+}
+
+async function register () {
+  if (!hasUserScripts()) {
+    if ((await chrome.scripting.getRegisteredContentScripts()).length) return
+    return chrome.scripting.registerContentScripts(SCRIPTS.map(({ id, matches, files }) => ({ id, matches, js: files })))
+  }
+  await chrome.scripting.unregisterContentScripts()
+  const code = await fetchCode()
+  const current = await chrome.userScripts.getScripts()
+  // Offline or Ship Pad down: keep what's registered, or start from the bundled copies.
+  if (!code && current.length) return
+  const next = SCRIPTS.map(({ id, matches, files }, i) => ({
+    id, matches, js: code ? code[i].map((c) => ({ code: c })) : files.map((file) => ({ file }))
+  }))
+  const key = (list) => JSON.stringify(list.map((s) => [s.id, s.js]))
+  if (key(current) === key(next)) return
+  await chrome.userScripts.configureWorld({ messaging: true })
+  await chrome.userScripts.unregister()
+  await chrome.userScripts.register(next)
+}
+
+// One sync at a time; overlapping unregister/register calls fail on duplicate ids.
+let queue = Promise.resolve()
+const sync = () => { queue = queue.then(register).catch((err) => console.warn('Ship Pad: script sync failed', err)) }
+
+chrome.runtime.onInstalled.addListener(sync)
+chrome.runtime.onStartup.addListener(sync)
+chrome.storage.onChanged.addListener((changes) => { if (changes.padUrl || changes.panelSite) sync() })
+
+// tab.url is only visible for eBay's pages (host_permissions), so other tabs read as "not eBay".
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
-  const onCalc = !!tab.url?.startsWith(CALC)
-  chrome.sidePanel.setOptions({ tabId, path: 'sidepanel.html', enabled: onCalc })
-  chrome.action.setPopup({ tabId, popup: onCalc ? '' : 'popup.html' })
+  chrome.action.setPopup({ tabId, popup: tab.url?.startsWith(CALC) ? '' : 'popup.html' })
+  // shortcut: an update fetched here may land just after this page's scripts run; the next load has it.
+  if (info.status === 'loading' && SCRIPTS.some((s) => tab.url?.startsWith(s.matches[0].replace('*', '')))) sync()
 })
 
-// The "Open Ship Pad" button on eBay's page. open() needs the click's user gesture, so call it right away.
-chrome.runtime.onMessage.addListener((msg, sender) => {
-  if (msg === 'open-panel') chrome.sidePanel.open({ tabId: sender.tab.id })
-})
+// From eBay's pages: user scripts message via onUserScriptMessage, the bundled fallback via onMessage.
+function onMessage (msg, sender) {
+  // The "Open Ship Pad" button. open() needs the click's user gesture, so call it right away.
+  if (msg === 'open-panel') chrome.sidePanel.open({ windowId: sender.tab.windowId })
+  else if (msg?.pkg) chrome.storage.local.set({ pkg: msg.pkg })
+}
+chrome.runtime.onMessage.addListener(onMessage)
+chrome.runtime.onUserScriptMessage?.addListener(onMessage)

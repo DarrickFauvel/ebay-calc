@@ -49,7 +49,9 @@ const SCHEMA = [
     oz REAL,
     length REAL,
     width REAL,
-    height REAL
+    height REAL,
+    mode TEXT,
+    list_price REAL
   )`,
   // Where each service's rate table came from, and any newer published table waiting to be applied.
   `CREATE TABLE IF NOT EXISTS rate_source (
@@ -74,6 +76,11 @@ export async function migrate () {
   const { rows } = await db.execute('PRAGMA table_info(settings)')
   if (!rows.some((r) => r.name === 'usps_discount_pct')) {
     await db.execute('ALTER TABLE settings ADD COLUMN usps_discount_pct REAL NOT NULL DEFAULT 0')
+  }
+  const { rows: last } = await db.execute('PRAGMA table_info(last_inputs)')
+  if (!last.some((r) => r.name === 'list_price')) {
+    await db.execute('ALTER TABLE last_inputs ADD COLUMN mode TEXT')
+    await db.execute('ALTER TABLE last_inputs ADD COLUMN list_price REAL')
   }
 }
 
@@ -101,16 +108,17 @@ export async function getCategory (id) {
 }
 
 export async function getLastInputs () {
-  const { rows } = await db.execute('SELECT cost, target_profit, lb, oz, length, width, height FROM last_inputs WHERE id = 1')
+  const { rows } = await db.execute('SELECT cost, target_profit, lb, oz, length, width, height, mode, list_price FROM last_inputs WHERE id = 1')
   return rows[0] ?? null
 }
 
-export async function saveLastInputs ({ cost, targetProfit, lb, oz, length, width, height }) {
+export async function saveLastInputs ({ cost, targetProfit, lb, oz, length, width, height, mode, listPrice }) {
   await db.execute({
-    sql: `INSERT INTO last_inputs (id, cost, target_profit, lb, oz, length, width, height) VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO last_inputs (id, cost, target_profit, lb, oz, length, width, height, mode, list_price) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT (id) DO UPDATE SET cost = excluded.cost, target_profit = excluded.target_profit,
-          lb = excluded.lb, oz = excluded.oz, length = excluded.length, width = excluded.width, height = excluded.height`,
-    args: [cost, targetProfit, lb, oz, length, width, height]
+          lb = excluded.lb, oz = excluded.oz, length = excluded.length, width = excluded.width, height = excluded.height,
+          mode = excluded.mode, list_price = excluded.list_price`,
+    args: [cost, targetProfit, lb, oz, length, width, height, mode, listPrice]
   })
 }
 

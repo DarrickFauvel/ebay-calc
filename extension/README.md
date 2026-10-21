@@ -8,15 +8,24 @@ eBay's shipping calculator into Ship Pad's calculator.
 1. Open `chrome://extensions` and turn on **Developer mode**.
 2. Click **Load unpacked** and pick this `extension/` folder.
 3. Pin it from the puzzle-piece menu.
+4. Click its **Details** and turn on **Allow User Scripts** (on Chrome before 138, Developer mode covers this).
+
+## Updates
+
+The scripts that run on eBay's pages (`ebay.js`, `ebay-content.js`, `ebay-listing.js`) load from Ship Pad's `/extension/` path, from the same Ship Pad the side panel shows (dev or live). Each eBay page load checks for a newer copy, and the next load uses it, so a change there needs no extension reload. Without **Allow User Scripts** (or when Ship Pad can't be reached the first time), the copies bundled in the extension run instead, and the side panel shows a note.
+
+Changes to anything else (`manifest.json`, `background.js`, the side panel, popup or Ship Pad-side `content.js`) still need an update: unzip the new download over the same folder and click ↻ on the extension's card. There's no need to remove it.
 
 ## Use
 
 1. Open eBay's shipping calculator (Ship Pad's **Open eBay calculator** button opens it in a new tab).
-2. Click **Open Ship Pad** (bottom-right of eBay's page) or the Ship Pad icon. Ship Pad slides open in Chrome's side panel, next to eBay. It opens your dev Ship Pad (the last localhost or Codespaces address you opened in a normal tab) or the live site; the bar at the bottom shows which and switches between them.
+2. Click **Open Ship Pad** (bottom-right of eBay's page) or the Ship Pad icon. Ship Pad slides open in Chrome's side panel, next to eBay. It stays open when you switch tabs (e.g. to the listing you're revising), so pages don't jump. A sticky bar at the top shows the price and package, and values flash when they change. It opens your dev Ship Pad (the last localhost or Codespaces address you opened in a normal tab) or the live site; the bar at the bottom shows which and switches between them.
 3. Fill in the package on eBay. The side panel's **From eBay** box updates as you type.
 4. Click **Calculate** on eBay. The box picks up the USPS Ground Advantage price.
-5. Click into the side panel. It fills weight, box, ship-to ZIP and the eBay label cost automatically. **Fill now** does the same by hand.
+5. The side panel fills weight, box, ship-to ZIP and the eBay label cost as soon as the price appears. **Fill now** does the same by hand.
+
+On eBay's listing editor (`ebay.com/lstng`, including **Revise item**), buttons in the bottom-right jump to the **SKU**, **Price** and **Shipping** sections and the **Revise it** button.
 
 On any other tab the icon opens the popup: on a Ship Pad tab it fills in what was captured from eBay.
 
-The extension runs only on eBay's calculator (`ebay.com/shp/calc/`), Ship Pad's addresses (including Codespaces `*.app.github.dev`), and on any tab when you click its icon.
+The extension runs only on eBay's calculator (`ebay.com/shp/calc/`), eBay's listing editor (`ebay.com/lstng`), Ship Pad's addresses (including Codespaces `*.app.github.dev`), and on any tab when you click its icon.
