@@ -1,8 +1,10 @@
+import { readdir, readFile } from 'node:fs/promises'
 import express from 'express'
 import { migrate } from './src/db/client.js'
 import { seed } from './src/db/seed.js'
 import { checkIfStale } from './src/lib/rate-updates.js'
 import { render } from './src/lib/views.js'
+import { writeZip } from './src/lib/zip.js'
 import calc from './src/routes/calc.js'
 import settings from './src/routes/settings.js'
 import rates from './src/routes/rates.js'
@@ -23,6 +25,13 @@ app.use(settings)
 app.use('/rates', rates)
 app.use('/categories', categories)
 app.use(qr)
+// The Chrome extension folder as a zip, unpacked into ship-pad-extension/ for "Load unpacked".
+app.get('/extension.zip', async (req, res) => {
+  const dir = new URL('./extension/', import.meta.url)
+  const names = await readdir(dir)
+  const files = await Promise.all(names.map(async (name) => ({ name: `ship-pad-extension/${name}`, data: await readFile(new URL(name, dir)) })))
+  res.attachment('ship-pad-extension.zip').type('application/zip').send(writeZip(files))
+})
 app.get('/offline', (req, res) => res.send(render('offline', { title: 'Offline' })))
 
 app.use((err, req, res, next) => {
