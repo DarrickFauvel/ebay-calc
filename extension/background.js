@@ -9,3 +9,8 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   chrome.sidePanel.setOptions({ tabId, path: 'sidepanel.html', enabled: onCalc })
   chrome.action.setPopup({ tabId, popup: onCalc ? '' : 'popup.html' })
 })
+
+// The "Open Ship Pad" button on eBay's page. open() needs the click's user gesture, so call it right away.
+chrome.runtime.onMessage.addListener((msg, sender) => {
+  if (msg === 'open-panel') chrome.sidePanel.open({ tabId: sender.tab.id })
+})
