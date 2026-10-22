@@ -51,7 +51,9 @@ const SCHEMA = [
     width REAL,
     height REAL,
     mode TEXT,
-    list_price REAL
+    list_price REAL,
+    ship_zip TEXT,
+    label_cost REAL
   )`,
   // Where each service's rate table came from, and any newer published table waiting to be applied.
   `CREATE TABLE IF NOT EXISTS rate_source (
@@ -78,9 +80,8 @@ export async function migrate () {
     await db.execute('ALTER TABLE settings ADD COLUMN usps_discount_pct REAL NOT NULL DEFAULT 0')
   }
   const { rows: last } = await db.execute('PRAGMA table_info(last_inputs)')
-  if (!last.some((r) => r.name === 'list_price')) {
-    await db.execute('ALTER TABLE last_inputs ADD COLUMN mode TEXT')
-    await db.execute('ALTER TABLE last_inputs ADD COLUMN list_price REAL')
+  for (const [name, type] of [['mode', 'TEXT'], ['list_price', 'REAL'], ['ship_zip', 'TEXT'], ['label_cost', 'REAL']]) {
+    if (!last.some((r) => r.name === name)) await db.execute(`ALTER TABLE last_inputs ADD COLUMN ${name} ${type}`)
   }
 }
 
@@ -108,17 +109,17 @@ export async function getCategory (id) {
 }
 
 export async function getLastInputs () {
-  const { rows } = await db.execute('SELECT cost, target_profit, lb, oz, length, width, height, mode, list_price FROM last_inputs WHERE id = 1')
+  const { rows } = await db.execute('SELECT cost, target_profit, lb, oz, length, width, height, mode, list_price, ship_zip, label_cost FROM last_inputs WHERE id = 1')
   return rows[0] ?? null
 }
 
-export async function saveLastInputs ({ cost, targetProfit, lb, oz, length, width, height, mode, listPrice }) {
+export async function saveLastInputs ({ cost, targetProfit, lb, oz, length, width, height, mode, listPrice, shipZip, labelCost }) {
   await db.execute({
-    sql: `INSERT INTO last_inputs (id, cost, target_profit, lb, oz, length, width, height, mode, list_price) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    sql: `INSERT INTO last_inputs (id, cost, target_profit, lb, oz, length, width, height, mode, list_price, ship_zip, label_cost) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           ON CONFLICT (id) DO UPDATE SET cost = excluded.cost, target_profit = excluded.target_profit,
           lb = excluded.lb, oz = excluded.oz, length = excluded.length, width = excluded.width, height = excluded.height,
-          mode = excluded.mode, list_price = excluded.list_price`,
-    args: [cost, targetProfit, lb, oz, length, width, height, mode, listPrice]
+          mode = excluded.mode, list_price = excluded.list_price, ship_zip = excluded.ship_zip, label_cost = excluded.label_cost`,
+    args: [cost, targetProfit, lb, oz, length, width, height, mode, listPrice, shipZip, labelCost]
   })
 }
 

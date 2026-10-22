@@ -42,6 +42,8 @@ if (box) {
   if (!inPanel && location.hostname !== 'ship-pad.darrickdevelops.com') chrome.storage.local.set({ padUrl: location.origin + '/' })
   button.addEventListener('click', fill)
   chrome.storage.onChanged.addListener((changes) => {
+    // Sent from eBay's listing editor (cost, or a price to check).
+    if (changes.fill?.newValue) fillShipPad(changes.fill.newValue.values)
     if (!changes.pkg) return
     pkg = changes.pkg.newValue ?? null
     render()
