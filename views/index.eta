@@ -15,9 +15,7 @@
     <%/* eBay first: in the side panel, the package comes from eBay. The box is revealed by the Chrome extension. */%>
     <div id="ebay-sync" class="notice" hidden>
       <span id="ebay-sync-text" data-flash="ebay"></span>
-      <button type="button" class="secondary" id="fill-from-ebay">Fill now</button>
     </div>
-    <a class="button secondary" id="open-ebay" href="https://www.ebay.com/shp/calc/rates" target="ebay-calc" rel="noopener">Open eBay calculator</a>
 
     <fieldset class="segmented">
       <legend>I want to…</legend>
