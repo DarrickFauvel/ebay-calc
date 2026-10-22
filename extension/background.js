@@ -8,7 +8,8 @@ const LIVE = 'https://ship-pad.darrickdevelops.com/'
 // as user scripts, so a deploy updates them without reloading the extension. The bundled copies are the fallback.
 const SCRIPTS = [
   { id: 'calc', matches: [`${CALC}*`], files: ['ebay.js', 'ebay-content.js'] },
-  { id: 'listing', matches: ['https://www.ebay.com/lstng*'], files: ['ebay-listing.js'] }
+  { id: 'listing', matches: ['https://www.ebay.com/lstng*'], files: ['ebay-listing.js'] },
+  { id: 'search', matches: ['https://www.ebay.com/sch/*'], files: ['ebay-search.js'] }
 ]
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true })
@@ -43,7 +44,9 @@ async function fetchCode () {
 
 async function register () {
   if (!hasUserScripts()) {
-    if ((await chrome.scripting.getRegisteredContentScripts()).length) return
+    // Re-register when SCRIPTS gained an entry since the last install.
+    if ((await chrome.scripting.getRegisteredContentScripts()).length === SCRIPTS.length) return
+    await chrome.scripting.unregisterContentScripts()
     return chrome.scripting.registerContentScripts(SCRIPTS.map(({ id, matches, files }) => ({ id, matches, js: files })))
   }
   await chrome.scripting.unregisterContentScripts()
