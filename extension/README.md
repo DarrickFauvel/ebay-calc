@@ -18,11 +18,11 @@ Changes to anything else (`manifest.json`, `background.js`, the side panel, popu
 
 ## Use
 
-1. Open eBay's shipping calculator (Ship Pad's **Open eBay calculator** button opens it in a new tab).
-2. Click **Open Ship Pad** (bottom-right of eBay's page) or the Ship Pad icon. Ship Pad slides open in Chrome's side panel, next to eBay. It stays open when you switch tabs (e.g. to the listing you're revising), so pages don't jump. A sticky bar at the top shows the price and package, and values flash when they change. It opens your dev Ship Pad (the last localhost or Codespaces address you opened in a normal tab) or the live site; the bar at the bottom shows which and switches between them.
+1. Open [eBay's shipping calculator](https://www.ebay.com/shp/calc/rates).
+2. Click **Open Ship Pad** (bottom-right of eBay's page) or the Ship Pad icon. Ship Pad slides open in Chrome's side panel, next to eBay. It stays open when you switch tabs (e.g. to the listing you're revising), so pages don't jump. A sticky bar at the top shows the price and package, and values flash when they change. It opens your dev Ship Pad (the last localhost or Codespaces address you opened in a normal tab) or the live site; the bar at the bottom shows which, the extension version (with an **Update** link when that Ship Pad has a newer one), and switches between them.
 3. Fill in the package on eBay. The side panel's **From eBay** box updates as you type.
 4. Click **Calculate** on eBay. The box picks up the USPS Ground Advantage price.
-5. The side panel fills weight, box, ship-to ZIP and the eBay label cost as soon as the price appears. **Fill now** does the same by hand.
+5. The side panel fills weight, box, ship-to ZIP and the eBay label cost as soon as the price appears.
 
 On eBay's listing editor (`ebay.com/lstng`, including **Revise item**), buttons in the bottom-right jump to the custom label (**Cost**, read from the SKU), **Price** and **Shipping** fields and the **Revise it** button. They show the cost, item price and selected shipping policy as you edit. The **→** beside Cost and Price sends that value to Ship Pad (the side panel and any open Ship Pad tab): cost fills Item cost, and price switches to **Check a price** and fills List price. The **Package** button shows the listing's weight and box; its **→** fills them, with the ship-from ZIP from Ship Pad's Settings, into eBay's shipping calculator (an open calculator tab, or a new one).
 

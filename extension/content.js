@@ -4,7 +4,6 @@ const inPanel = window !== top
 document.documentElement.toggleAttribute('data-panel', inPanel)
 const box = document.getElementById('ebay-sync')
 const text = document.getElementById('ebay-sync-text')
-const button = document.getElementById('fill-from-ebay')
 let pkg = null
 
 const filledAt = () => { try { return Number(sessionStorage.getItem('ebayFilledAt')) || 0 } catch { return 0 } }
@@ -13,7 +12,6 @@ const markFilled = (at) => { try { sessionStorage.setItem('ebayFilledAt', String
 function render (prefix = 'From eBay') {
   if (!pkg) {
     text.textContent = 'From eBay: nothing yet. Open the eBay calculator and enter the package.'
-    button.disabled = true
     return
   }
   const parts = [`${pkg.lb || 0} lb ${pkg.oz || 0} oz`]
@@ -21,7 +19,6 @@ function render (prefix = 'From eBay') {
   if (pkg.shipZip) parts.push(`to ${pkg.shipZip}`)
   parts.push(pkg.labelCost ? `USPS GA $${pkg.labelCost}` : 'waiting for Calculate…')
   text.textContent = `${prefix}: ${parts.join(' · ')}`
-  button.disabled = false
 }
 
 function fill () {
@@ -40,7 +37,6 @@ if (box) {
   box.hidden = false
   // Remember the dev Ship Pad's address (localhost or Codespaces) for the side panel's Dev/Live switch.
   if (!inPanel && location.hostname !== 'ship-pad.darrickdevelops.com') chrome.storage.local.set({ padUrl: location.origin + '/' })
-  button.addEventListener('click', fill)
   chrome.storage.onChanged.addListener((changes) => {
     // Sent from eBay's listing editor (cost, or a price to check).
     if (changes.fill?.newValue) fillShipPad(changes.fill.newValue.values)
