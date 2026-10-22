@@ -22,8 +22,9 @@ router.get('/', async (req, res) => {
     mode: last?.mode ?? 'profit',
     targetProfit: String(last?.target_profit ?? 10),
     listPrice: String(last?.list_price ?? 0),
-    labelCost: '',
-    shipZip: '',
+    // eBay's label price (filled by the extension) and ship-to ZIP survive a reload too; 0 means none.
+    labelCost: last?.label_cost ? String(last.label_cost) : '',
+    shipZip: last?.ship_zip ?? '',
     taxZip: ''
   }
   const q = await quote(signals, settings)
@@ -47,12 +48,12 @@ router.post('/calc', async (req, res) => {
   stream.end()
 })
 
-// Keep the last mode, prices, cost, weight and box size so the next visit starts from them.
+// Keep the last mode, prices, cost, weight, box size, ship-to ZIP and label cost so the next visit starts from them.
 function remember (signals = {}) {
-  const { cost, targetProfit, length, width, height, mode, listPrice } = parseInputs(signals)
+  const { cost, targetProfit, length, width, height, mode, listPrice, shipZip, labelCost } = parseInputs(signals)
   const lb = Math.max(0, Math.floor(Number(signals.lb) || 0))
   const oz = Math.max(0, Number(signals.oz) || 0)
-  return saveLastInputs({ cost, targetProfit, lb, oz, length, width, height, mode, listPrice })
+  return saveLastInputs({ cost, targetProfit, lb, oz, length, width, height, mode, listPrice, shipZip, labelCost })
 }
 
 export default router

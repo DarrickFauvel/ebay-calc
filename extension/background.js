@@ -47,6 +47,8 @@ async function register () {
     return chrome.scripting.registerContentScripts(SCRIPTS.map(({ id, matches, files }) => ({ id, matches, js: files })))
   }
   await chrome.scripting.unregisterContentScripts()
+  // Every time, not just on re-register: without it the scripts' chrome.runtime.sendMessage is missing.
+  await chrome.userScripts.configureWorld({ messaging: true })
   const code = await fetchCode()
   const current = await chrome.userScripts.getScripts()
   // Offline or Ship Pad down: keep what's registered, or start from the bundled copies.
@@ -56,7 +58,6 @@ async function register () {
   }))
   const key = (list) => JSON.stringify(list.map((s) => [s.id, s.js]))
   if (key(current) === key(next)) return
-  await chrome.userScripts.configureWorld({ messaging: true })
   await chrome.userScripts.unregister()
   await chrome.userScripts.register(next)
 }
@@ -77,10 +78,74 @@ chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
 })
 
 // From eBay's pages: user scripts message via onUserScriptMessage, the bundled fallback via onMessage.
-function onMessage (msg, sender) {
+function onMessage (msg, sender, sendResponse) {
   // The "Open Ship Pad" button. open() needs the click's user gesture, so call it right away.
   if (msg === 'open-panel') chrome.sidePanel.open({ windowId: sender.tab.windowId })
   else if (msg?.pkg) chrome.storage.local.set({ pkg: msg.pkg })
+  // Values for Ship Pad's form from the listing editor's → buttons; `at` makes resending the same value fire onChanged.
+  else if (msg?.fill) chrome.storage.local.set({ fill: { values: msg.fill, at: Date.now() } })
+  else if (msg?.toCalc) {
+    toCalc(msg.toCalc).then(sendResponse, (err) => sendResponse({ error: err.message }))
+    return true // answers asynchronously
+  }
+}
+
+// The listing editor's package → eBay's calculator, with Ship Pad's ship-from ZIP. Uses an open calculator tab, or opens one.
+async function toCalc (pkg) {
+  const { originZip } = await fetch(new URL('settings.json', await base()), { credentials: 'include' })
+    .then((r) => r.json()).catch(() => ({}))
+  const values = { ...pkg, fromZip: originZip }
+  const fill = async (tabId) => (await chrome.scripting.executeScript({ target: { tabId }, func: fillCalc, args: [values] }))[0].result
+  let [tab] = await chrome.tabs.query({ url: `${CALC}*` })
+  if (tab) {
+    await chrome.tabs.update(tab.id, { active: true })
+    await chrome.windows.update(tab.windowId, { focused: true })
+  } else {
+    tab = await chrome.tabs.create({ url: `${CALC}rates` })
+    await loaded(tab.id)
+  }
+  const result = await fill(tab.id)
+  if (result?.error) throw new Error(result.error)
+  return { ok: true }
+}
+
+function loaded (tabId) {
+  return new Promise((resolve) => {
+    const done = (id, info) => {
+      if (id !== tabId || info.status !== 'complete') return
+      chrome.tabs.onUpdated.removeListener(done)
+      resolve()
+    }
+    chrome.tabs.onUpdated.addListener(done)
+  })
+}
+
+// Runs in eBay's calculator tab, so it must stay self-contained. Uses the native value setter so eBay's
+// framework sees the change as typing. The from-ZIP testid is a guess modeled on input.location.to.zip.
+async function fillCalc ({ lb, oz, length, width, height, fromZip }) {
+  const $ = (id) => document.querySelector(`[data-testid="${id}"]`)
+  // eBay renders the form after load. After Calculate it shows a summary instead; its Edit
+  // (<div data-testid="ship-details-summary-edit">Edit</div>) brings the form back, to-ZIP included.
+  for (let i = 0; i < 40 && !$('input.weight.lbs'); i++) {
+    $('ship-details-summary-edit')?.click()
+    await new Promise((resolve) => setTimeout(resolve, 250))
+  }
+  if (!$('input.weight.lbs')) return { error: "eBay's calculator form didn't show up." }
+  const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+  const set = (id, value) => {
+    const el = $(id)
+    if (!el || value == null) return
+    setValue.call(el, value)
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+  set('input.weight.lbs', lb || '0')
+  set('input.weight.oz', oz || '0')
+  set('input.dimensions.length', length)
+  set('input.dimensions.width', width)
+  set('input.dimensions.height', height)
+  if (fromZip) set('input.location.from.zip', fromZip)
+  return { ok: true }
 }
 chrome.runtime.onMessage.addListener(onMessage)
 chrome.runtime.onUserScriptMessage?.addListener(onMessage)

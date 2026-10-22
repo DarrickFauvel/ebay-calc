@@ -24,7 +24,7 @@ Changes to anything else (`manifest.json`, `background.js`, the side panel, popu
 4. Click **Calculate** on eBay. The box picks up the USPS Ground Advantage price.
 5. The side panel fills weight, box, ship-to ZIP and the eBay label cost as soon as the price appears. **Fill now** does the same by hand.
 
-On eBay's listing editor (`ebay.com/lstng`, including **Revise item**), buttons in the bottom-right jump to the **SKU**, **Price** and **Shipping** sections and the **Revise it** button.
+On eBay's listing editor (`ebay.com/lstng`, including **Revise item**), buttons in the bottom-right jump to the custom label (**Cost**, read from the SKU), **Price** and **Shipping** fields and the **Revise it** button. They show the cost, item price and selected shipping policy as you edit. The **→** beside Cost and Price sends that value to Ship Pad (the side panel and any open Ship Pad tab): cost fills Item cost, and price switches to **Check a price** and fills List price. The **Package** button shows the listing's weight and box; its **→** fills them, with the ship-from ZIP from Ship Pad's Settings, into eBay's shipping calculator (an open calculator tab, or a new one).
 
 On any other tab the icon opens the popup: on a Ship Pad tab it fills in what was captured from eBay.
 

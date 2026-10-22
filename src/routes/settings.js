@@ -19,6 +19,12 @@ router.get('/settings', async (req, res) => {
   res.send(render('settings', { title: 'Settings', nav: 'settings', settings, categories }))
 })
 
+// For the Chrome extension: the ship-from ZIP it fills into eBay's shipping calculator.
+router.get('/settings.json', async (req, res) => {
+  const { origin_zip: originZip } = await getSettings()
+  res.json({ originZip })
+})
+
 router.post('/settings', async (req, res) => {
   const b = req.body
   const current = await getSettings()
