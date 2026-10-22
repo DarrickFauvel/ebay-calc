@@ -12,7 +12,7 @@ eBay's shipping calculator into Ship Pad's calculator.
 
 ## Updates
 
-The scripts that run on eBay's pages (`ebay.js`, `ebay-content.js`, `ebay-listing.js`) load from Ship Pad's `/extension/` path, from the same Ship Pad the side panel shows (dev or live). Each eBay page load checks for a newer copy, and the next load uses it, so a change there needs no extension reload. Without **Allow User Scripts** (or when Ship Pad can't be reached the first time), the copies bundled in the extension run instead, and the side panel shows a note.
+The scripts that run on eBay's pages (`ebay.js`, `ebay-content.js`, `ebay-listing.js`, `ebay-search.js`) load from Ship Pad's `/extension/` path, from the same Ship Pad the side panel shows (dev or live). Each eBay page load checks for a newer copy, and the next load uses it, so a change there needs no extension reload. Without **Allow User Scripts** (or when Ship Pad can't be reached the first time), the copies bundled in the extension run instead, and the side panel shows a note.
 
 Changes to anything else (`manifest.json`, `background.js`, the side panel, popup or Ship Pad-side `content.js`) still need an update: unzip the new download over the same folder and click ↻ on the extension's card. There's no need to remove it.
 
@@ -26,6 +26,8 @@ Changes to anything else (`manifest.json`, `background.js`, the side panel, popu
 
 On eBay's listing editor (`ebay.com/lstng`, including **Revise item**), buttons in the bottom-right jump to the custom label (**Cost**, read from the SKU), **Price** and **Shipping** fields and the **Revise it** button. They show the cost, item price and selected shipping policy as you edit. The **→** beside Cost and Price sends that value to Ship Pad (the side panel and any open Ship Pad tab): cost fills Item cost, and price switches to **Check a price** and fills List price. The **Package** button shows the listing's weight and box; its **→** fills them, with the ship-from ZIP from Ship Pad's Settings, into eBay's shipping calculator (an open calculator tab, or a new one).
 
+On eBay search results (`ebay.com/sch/`), pick **New**, **Used** or **Parts** (or none for any condition) and tap **Comps**. It reloads the search with Buy It Now, Sold and Completed turned on. Tap **Comps ✓** to turn them off again. On sold results, a box shows the median sold price, the median total (price + shipping) and how many sold with free shipping. Its **→** switches Ship Pad to **Check a price** and fills List price with the median total. Cards with a price range, a best offer accepted (the real price is hidden) or no shipping shown are left out.
+
 On any other tab the icon opens the popup: on a Ship Pad tab it fills in what was captured from eBay.
 
-The extension runs only on eBay's calculator (`ebay.com/shp/calc/`), eBay's listing editor (`ebay.com/lstng`), Ship Pad's addresses (including Codespaces `*.app.github.dev`), and on any tab when you click its icon.
+The extension runs only on eBay's calculator (`ebay.com/shp/calc/`), eBay's listing editor (`ebay.com/lstng`), eBay search results (`ebay.com/sch/`), Ship Pad's addresses (including Codespaces `*.app.github.dev`), and on any tab when you click its icon.
