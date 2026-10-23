@@ -63,7 +63,7 @@ function find (patterns, only, selector) {
   // Labels come first so a field's own label wins; the length cap skips containers that merely include the text.
   const els = (only ? [...document.querySelectorAll(only)] : [...document.querySelectorAll('label'), ...document.querySelectorAll('h1, h2, h3, h4, h5, legend, [role="heading"], button, span, div, p')])
     // Clickables can hold hidden extra text (loading labels), so the length cap is only for the general search.
-    .filter((e) => (only || e.textContent.length < 40) && !bar.contains(e) && e.checkVisibility())
+    .filter((e) => (only || e.textContent.length < 40) && e.checkVisibility())
   const text = (e) => (e.value && e.matches('input') ? e.value : e.textContent).replace(/\s+/g, ' ').trim()
   for (const re of patterns) {
     const el = els.find((e) => re.test(text(e)))
@@ -72,17 +72,38 @@ function find (patterns, only, selector) {
   }
 }
 
-const BUTTON = 'margin: 0; border: 0; min-height: 44px; padding: 0 16px; border-radius: 22px; background: #111; color: #fff; font: 600 16px/44px system-ui, sans-serif; cursor: pointer; box-shadow: 0 2px 8px rgb(0 0 0 / 0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis'
-const bar = document.createElement('div')
-bar.style.cssText = 'position: fixed; right: 16px; bottom: 16px; z-index: 2147483647; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: 18rem'
+// A Ship Pad bar pinned to the bottom, like the one on search results but with blue stripes. Shadow DOM keeps eBay's CSS out.
+const LOGO = '<svg viewBox="0 0 64 64" width="24" height="24" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#1d4ed8"/><path d="M14 24 32 15l18 9v20L32 53 14 44Z" fill="#fff"/><path d="M14 24l18 9 18-9M32 33v20M23 19.5 41 28.5v7" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>'
+const host = document.createElement('div')
+const root = host.attachShadow({ mode: 'open' })
+root.innerHTML = `<style>
+  :host { position: fixed; left: 0; right: 0; bottom: 0; z-index: 2147483647 }
+  [hidden] { display: none !important }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 16px calc(8px + env(safe-area-inset-bottom)); border-top: 6px solid transparent; color: #a6a6a6; font: 16px/1.3 system-ui, sans-serif; box-shadow: 0 4px 24px rgb(0 0 0 / 0.35);
+    /* Blue-stripe top edge (search's is yellow), faint stripes inside. One origin keeps both stripe layers in phase. */
+    background: repeating-linear-gradient(-45deg, rgb(59 130 246 / 0.06) 0 10px, transparent 0 20px) padding-box,
+      linear-gradient(#262626, #262626) padding-box,
+      repeating-linear-gradient(-45deg, #1d4ed8 0 10px, #1c1c1c 0 20px) border-box;
+    background-origin: border-box }
+  /* Narrow phones drop the logo to leave room for the buttons. */
+  .brand { display: none; align-items: center; gap: 8px; margin-right: 8px; color: #f0f0f0; font-weight: 700 }
+  /* Phones: one row you swipe sideways, so the bar stays one button tall. Wide screens wrap instead. */
+  .bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none }
+  .item { display: flex; flex: none; gap: 4px }
+  button { margin: 0; border: 0; min-height: 44px; max-width: 18rem; padding: 0 14px; border-radius: 22px; background: none; color: #f0f0f0; box-shadow: inset 0 0 0 1px #3d3d3d; font: 600 16px/44px system-ui, sans-serif; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+  .send { flex: none; width: 44px; padding: 0; background: #f0f0f0; color: #1c1c1c; box-shadow: none }
+  @media (min-width: 30rem) { .brand { display: flex; flex: none } }
+  @media (min-width: 52rem) { .bar { flex-wrap: wrap } .item { flex: 0 1 auto; min-width: 0 } }
+</style>
+<div class="bar" role="region" aria-label="Ship Pad listing"><div class="brand">${LOGO}<span>Ship Pad</span></div></div>`
+const bar = root.querySelector('.bar')
 
 const buttons = TARGETS.map((t) => {
   const row = document.createElement('div')
-  row.style.cssText = 'display: flex; gap: 6px; max-width: 100%'
+  row.className = 'item'
   const btn = document.createElement('button')
   btn.type = 'button'
   btn.textContent = t.name
-  btn.style.cssText = BUTTON
   btn.addEventListener('click', () => {
     const el = find(t.patterns, t.only, t.selector)
     if (!el) {
@@ -98,10 +119,10 @@ const buttons = TARGETS.map((t) => {
   if (t.send) {
     sendBtn = document.createElement('button')
     sendBtn.type = 'button'
+    sendBtn.className = 'send'
     sendBtn.textContent = '→'
     sendBtn.title = sendBtn.ariaLabel = t.sendLabel ?? `Send ${t.name.toLowerCase()} to Ship Pad`
-    // Inline display, not [hidden]: eBay's CSS could override the attribute.
-    sendBtn.style.cssText = `${BUTTON}; flex: none; width: 44px; padding: 0; display: none`
+    sendBtn.hidden = true
     sendBtn.addEventListener('click', async () => {
       const v = t.value(find(t.patterns, t.only, t.selector))
       if (!v) return
@@ -122,7 +143,25 @@ const buttons = TARGETS.map((t) => {
   bar.append(row)
   return { t, btn, sendBtn }
 })
-document.body.append(bar)
+document.body.append(host)
+
+// eBay's listing editor has its own fixed footer (List it / Revise it). Sit just above it, and pad the page so nothing hides behind either.
+let footer = null
+function place () {
+  const lift = footer?.isConnected ? Math.max(0, innerHeight - footer.getBoundingClientRect().top) : 0
+  host.style.bottom = `${lift}px`
+  document.body.style.paddingBottom = `${host.offsetHeight + lift}px`
+}
+function findFooter () {
+  let el = document.querySelector('button[_track*="listItCallToAction"]')
+  while (el && el !== document.body && !/fixed|sticky/.test(getComputedStyle(el).position)) el = el.parentElement
+  // Only a footer pinned to the bottom of the window counts.
+  const next = el && el !== document.body && el.getBoundingClientRect().bottom >= innerHeight - 1 ? el : null
+  if (next !== footer) { footer = next; place() }
+}
+new ResizeObserver(place).observe(host)
+addEventListener('resize', place)
+addEventListener('scroll', place, { passive: true })
 
 // Keep the cost, price and policy current as you edit and as eBay renders. Only writes when something changes, so our own updates settle.
 function refresh () {
@@ -133,9 +172,9 @@ function refresh () {
       btn.textContent = text
       btn.title = text
     }
-    const display = v ? '' : 'none'
-    if (sendBtn && sendBtn.style.display !== display) sendBtn.style.display = display
+    if (sendBtn) sendBtn.hidden = !v
   }
+  findFooter()
 }
 let queued = false
 const schedule = () => {
