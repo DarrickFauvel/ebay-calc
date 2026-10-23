@@ -1,7 +1,7 @@
 {
   "name": "ebay-calc",
   "version": "1.0.0",
-  "description": "PWA calculator for pricing eBay items with free shipping baked in",
+  "description": "Web app and Chrome extension to price, comp and list on eBay without losing money on shipping",
   "type": "module",
   "private": true,
   "engines": {

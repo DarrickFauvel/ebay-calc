@@ -1,6 +1,6 @@
-# Ship Pad — eBay free-shipping calculator
+# Ship Pad — Price, comp and list on eBay without losing money on shipping
 
-A mobile-first PWA for pricing eBay listings with **free shipping baked in**. It prices every item as if it ships to the **furthest lower-48 zone from your ZIP**, so you never lose money on a long-distance sale. It also accounts for eBay's final value fee, the per-order fee, and the fact that eBay charges fees **on the sales tax and on the shipping portion of your price**.
+A desktop web app and Chrome extension for pricing eBay listings with **free shipping baked in**. It prices every item as if it ships to the **furthest lower-48 zone from your ZIP**, so you never lose money on a long-distance sale. It also accounts for eBay's final value fee, the per-order fee, and the fact that eBay charges fees **on the sales tax and on the shipping portion of your price**.
 
 - **Hit a target profit**: enter cost, weight and profit → get the list price (plus a `.99` charm price).
 - **Check a list price**: enter a price → see profit, margin and where every dollar goes.

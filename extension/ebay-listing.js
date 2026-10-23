@@ -87,6 +87,7 @@ root.innerHTML = `<style>
     background-origin: border-box }
   /* Narrow phones drop the logo to leave room for the buttons. */
   .brand { display: none; align-items: center; gap: 8px; margin-right: 8px; color: #f0f0f0; font-weight: 700 }
+  .ctx { color: #a6a6a6; font-weight: 600 }
   /* Phones: one row you swipe sideways, so the bar stays one button tall. Wide screens wrap instead. */
   .bar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none }
   .item { display: flex; flex: none; gap: 4px }
@@ -95,7 +96,7 @@ root.innerHTML = `<style>
   @media (min-width: 30rem) { .brand { display: flex; flex: none } }
   @media (min-width: 52rem) { .bar { flex-wrap: wrap } .item { flex: 0 1 auto; min-width: 0 } }
 </style>
-<div class="bar" role="region" aria-label="Ship Pad listing"><div class="brand">${LOGO}<span>Ship Pad</span></div></div>`
+<div class="bar" role="region" aria-label="Ship Pad listing"><div class="brand">${LOGO}<span>Ship Pad <span class="ctx">Listing</span></span></div></div>`
 const bar = root.querySelector('.bar')
 
 const buttons = TARGETS.map((t) => {

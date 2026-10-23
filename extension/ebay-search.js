@@ -85,6 +85,7 @@ if (globalThis.document) {
       background-origin: border-box }
     /* Narrow phones drop the logo so both switches fit on one line. */
     .brand { display: none; align-items: center; gap: 8px; margin-right: auto; color: #f0f0f0; font-weight: 700 }
+    .ctx { color: #a6a6a6; font-weight: 600 }
     .mode { margin-left: auto }
     .seg { display: flex; border-radius: 22px; box-shadow: inset 0 0 0 1px #3d3d3d; overflow: hidden }
     button { margin: 0; border: 0; min-height: 44px; padding: 0 12px; border-radius: 22px; background: none; color: #f0f0f0; font: 600 16px/44px system-ui, sans-serif; cursor: pointer; white-space: nowrap }
@@ -102,7 +103,7 @@ if (globalThis.document) {
     }
   </style>
   <div class="bar" role="region" aria-label="Ship Pad comps">
-    <div class="brand">${LOGO}<span>Ship Pad</span></div>
+    <div class="brand">${LOGO}<span>Ship Pad <span class="ctx">Comps</span></span></div>
     <div class="stats" hidden><span class="text" aria-live="polite"></span><button type="button" class="send">→</button></div>
     <div class="seg mode" role="group" aria-label="Comps">${['Sold', 'Active'].map((name) => `<button type="button" data-mode="${name.toLowerCase()}" aria-pressed="${mode === name.toLowerCase()}">${name}</button>`).join('')}</div>
     <div class="seg cond" role="group" aria-label="Condition">${CONDITIONS.map(([name, code]) => `<button type="button" data-code="${code}">${name}</button>`).join('')}</div>

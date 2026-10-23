@@ -1,7 +1,7 @@
 {
-  "name": "Ship Pad — eBay free-shipping calculator",
+  "name": "Ship Pad — Price, comp and list on eBay without losing money on shipping",
   "short_name": "Ship Pad",
-  "description": "Price eBay items with worst-case shipping, fees and sales tax built in.",
+  "description": "Price, comp and list on eBay without losing money on shipping. Worst-case shipping, fees and sales tax built in, plus sold comps and listing tools.",
   "id": "/",
   "start_url": "/",
   "scope": "/",
