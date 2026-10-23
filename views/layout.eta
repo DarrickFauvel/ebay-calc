@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title><%= it.title %> · Ship Pad</title>
-  <meta name="description" content="Price eBay items with free shipping built in">
+  <meta name="description" content="Price, comp and list on eBay without losing money on shipping.">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#ebebeb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1c1c1c" media="(prefers-color-scheme: dark)">

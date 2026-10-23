@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Ship Pad: copy from eBay",
   "version": "0.5.0",
-  "description": "Copy package size, ship-to ZIP and the USPS Ground Advantage price from eBay's shipping calculator into Ship Pad.",
+  "description": "Price, comp and list on eBay without losing money on shipping: sold comps on search, listing-editor shortcuts and the shipping calculator, linked to Ship Pad.",
   "permissions": [
     "activeTab",
     "scripting",

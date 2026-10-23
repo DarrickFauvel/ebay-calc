@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-eBay free-shipping price calculator: a mobile-first PWA. See README.md for features and docs/pricing-math.md for the formulas.
+Ship Pad: price, comp and list on eBay without losing money on shipping. A desktop web app plus a Chrome extension (it runs in Chrome's side panel next to eBay). See README.md for features and docs/pricing-math.md for the formulas.
 
 ## Commands
 
