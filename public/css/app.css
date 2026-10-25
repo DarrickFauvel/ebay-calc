@@ -183,10 +183,23 @@
     background: var(--surface-2);
     &:focus { border-color: var(--accent); }
   }
-  /* −$1 / +$1 under a price box, splitting its width. */
+  /* +$1 over −$1, joined to the right of the price box. Each half is 1.5rem (24px, the WCAG 2.5.8 minimum), so the box grows to 3rem to match. */
+  /* Cost and profit match the List price box with its stepper. */
+  .money-row .affix input { min-block-size: 3rem; }
+  .price-step {
+    display: flex;
+    & .affix { flex: 1; }
+    & input { block-size: 100%; border-start-end-radius: 0; border-end-end-radius: 0; }
+  }
   .stepper {
-    display: flex; gap: 0.4rem;
-    & button { flex: 1; padding-inline: 0.5rem; }
+    display: grid; grid-template-rows: 1.5rem 1.5rem; inline-size: 3.25rem;
+    & button {
+      min-block-size: 0; padding: 0; font-size: 0.8125rem; line-height: 1;
+      border-inline-start: 0; border-radius: 0;
+      &:first-child { border-start-end-radius: 0.55rem; border-block-end: 0; }
+      &:last-child { border-end-end-radius: 0.55rem; }
+      &:focus-visible { position: relative; z-index: 1; }
+    }
   }
   .affix {
     position: relative; display: block;
@@ -196,22 +209,20 @@
     &[data-suffix]::after { content: attr(data-suffix); inset-inline-end: 0.7rem; }
     &[data-suffix] input { padding-inline-end: 1.8rem; }
   }
+  /* Radios styled as tabs, matching .tabs on /rates. */
   .segmented {
-    display: flex; flex-wrap: wrap; gap: 0.4rem;
-    & legend { inline-size: 100%; }
+    display: flex; gap: 0.25rem; border-block-end: 1px solid var(--border);
     & label {
-      flex: 1 1 8rem;
+      flex: 1 1 0;
       position: relative;
       min-block-size: var(--tap);
       display: grid; place-items: center;
-      padding: 0.55rem 0.8rem;
-      border: 1px solid var(--border);
-      border-radius: 0.55rem;
-      font-weight: 600;
+      padding: 0.6rem 0.9rem;
+      border-block-end: 2px solid transparent; margin-block-end: -1px;
       color: var(--muted);
       cursor: pointer;
-      &:has(:checked) { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
-      &:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+      &:has(:checked) { color: var(--text); border-color: var(--accent); font-weight: 600; }
+      &:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
     }
     /* The whole label is the control; the radio stays for keyboard and screen readers. */
     & input { position: absolute; opacity: 0; pointer-events: none; }
