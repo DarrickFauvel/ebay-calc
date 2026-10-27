@@ -184,8 +184,8 @@
     &:focus { border-color: var(--accent); }
   }
   /* +$1 over −$1, joined to the right of the price box. Each half is 1.5rem (24px, the WCAG 2.5.8 minimum), so the box grows to 3rem to match. */
-  /* Cost and profit match the List price box with its stepper. */
-  .money-row .affix input { min-block-size: 3rem; }
+  /* Cost, profit and category match the List price box with its stepper. */
+  .money-row :is(.affix input, select) { min-block-size: 3rem; }
   .price-step {
     display: flex;
     & .affix { flex: 1; }
