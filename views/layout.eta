@@ -37,7 +37,8 @@
 <% } %>
     </nav>
   </header>
-  <p class="offline-banner" role="status" hidden>You're offline. Showing the last loaded page; calculations resume when you reconnect.</p>
+  <p class="banner extension-update" role="status" data-version="<%= it.version %>" hidden>Ship Pad extension v<%= it.version %> is out. <a href="/settings#extension">Update it in Settings</a>.</p>
+  <p class="banner offline-banner" role="status" hidden>You're offline. Showing the last loaded page; calculations resume when you reconnect.</p>
   <main>
 <%~ it.body %>
   </main>

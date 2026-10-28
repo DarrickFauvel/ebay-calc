@@ -1,6 +1,8 @@
 // On Ship Pad: show what's been captured from eBay, and fill it in when you come back to this tab.
 // In Chrome's side panel Ship Pad is framed; app.css uses this for the sticky top bar.
 const inPanel = window !== top
+// Lets Ship Pad say when this install is older than the download it serves.
+document.documentElement.dataset.extension = chrome.runtime.getManifest().version
 document.documentElement.toggleAttribute('data-panel', inPanel)
 const box = document.getElementById('ebay-sync')
 const text = document.getElementById('ebay-sync-text')

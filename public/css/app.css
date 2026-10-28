@@ -302,7 +302,7 @@
     &.ok { color: var(--good); }
     &.warn { color: var(--warn); }
   }
-  .offline-banner {
+  .banner {
     font-size: 0.9rem;
     max-inline-size: 72rem; margin: 0 auto 1rem;
     padding: 0.6rem 0.9rem; border-radius: 0.6rem;
