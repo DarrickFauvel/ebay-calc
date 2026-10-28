@@ -115,11 +115,21 @@ if (globalThis.document) {
     .send { flex: none; width: 44px; padding: 0; background: #f0f0f0; color: #1c1c1c; box-shadow: none }
     .primary { background: #f0f0f0; color: #1c1c1c; box-shadow: none }
     /* What Paste listing filled, above the bar: every value with a Copy button for anything to enter by hand. */
-    .sheet { max-height: 50vh; overflow-y: auto; padding: 8px 16px; background: #1c1c1c; color: #f0f0f0; font: 16px/1.3 system-ui, sans-serif; box-shadow: 0 -4px 24px rgb(0 0 0 / 0.35) }
+    .sheet { max-height: 40vh; overflow-y: auto; padding: 8px 16px; background: #1c1c1c; color: #f0f0f0; font: 16px/1.3 system-ui, sans-serif; box-shadow: 0 -4px 24px rgb(0 0 0 / 0.35) }
     .sheet header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 8px }
     .sheet h2 { flex: 1; margin: 0; font-size: 16px }
     .sheet a { color: #f0f0f0; font-weight: 600 }
     .row { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #333 }
+    /* Hidden: just the header strip, so the form has room while you work through it. */
+    @media (max-width: 79.99rem) {
+      .sheet.min .row { display: none }
+      .sheet.min header { padding-bottom: 0 }
+    }
+    /* Full-width windows: a left side panel down to the bar, and place() pads the page so it sits beside the form. */
+    @media (min-width: 80rem) {
+      .sheet { position: fixed; top: 0; left: 0; bottom: var(--below, 0); width: 22rem; max-height: none; box-sizing: border-box; box-shadow: 4px 0 24px rgb(0 0 0 / 0.35) }
+      .sheet .min-btn { display: none }
+    }
     .row .k { color: #a6a6a6; font-size: 14px }
     .row .v { overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
     .row button { grid-column: 2; grid-row: 1 / 3 }
@@ -230,11 +240,21 @@ if (globalThis.document) {
       a.textContent = `Sold comps: ${compQuery}`
       head.append(a)
     }
+    const min = document.createElement('button')
+    min.type = 'button'
+    min.className = 'min-btn'
+    min.textContent = 'Hide'
+    min.ariaExpanded = 'true'
+    min.addEventListener('click', () => {
+      const hide = sheet.classList.toggle('min')
+      min.textContent = hide ? 'Show' : 'Hide'
+      min.ariaExpanded = String(!hide)
+    })
     const close = document.createElement('button')
     close.type = 'button'
     close.textContent = 'Close'
-    close.addEventListener('click', () => { sheet.hidden = true })
-    head.append(close)
+    close.addEventListener('click', () => { sheet.hidden = true; place() })
+    head.append(min, close)
     sheet.replaceChildren(head, ...rows.map(([name, value, status]) => {
       const row = document.createElement('div')
       row.className = 'row'
@@ -260,7 +280,9 @@ if (globalThis.document) {
       row.append(k, v, copy)
       return row
     }))
+    sheet.classList.remove('min')
     sheet.hidden = false
+    place()
   }
 
   const pasteItem = document.createElement('div')
@@ -325,6 +347,10 @@ if (globalThis.document) {
   function place () {
     const lift = footer?.isConnected ? Math.max(0, innerHeight - footer.getBoundingClientRect().top) : 0
     host.style.bottom = `${lift}px`
+    host.style.setProperty('--below', `${bar.offsetHeight + lift}px`)
+    // The side panel is fixed, so it adds nothing to the host's height: pad the page left instead.
+    const side = !sheet.hidden && matchMedia('(min-width: 80rem)').matches
+    document.body.style.paddingLeft = side ? `${sheet.offsetWidth}px` : ''
     document.body.style.paddingBottom = `${host.offsetHeight + lift}px`
   }
   function findFooter () {
