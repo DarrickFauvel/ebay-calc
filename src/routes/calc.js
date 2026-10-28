@@ -26,7 +26,8 @@ router.get('/', async (req, res) => {
     labelCost: last?.label_cost ? String(last.label_cost) : '',
     shipZip: last?.ship_zip ?? '',
     taxZip: '',
-    media: false
+    media: false,
+    mediaCost: ''
   }
   const q = await quote(signals, settings)
   res.send(render('index', { title: 'Calculator', nav: 'calc', settings, categories, signals, q }))

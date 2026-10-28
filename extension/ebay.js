@@ -1,5 +1,5 @@
 // Reads eBay's shipping calculator: the inputs while you type, the "Rates based on" summary after Calculate,
-// and the USPS Ground Advantage price (labelCost: null until then). Null when this isn't the calculator.
+// and the USPS Ground Advantage and Media Mail prices (labelCost, mediaCost: null until then). Null when this isn't the calculator.
 // Shared by ebay-content.js and the popup (via executeScript, so it must stay self-contained).
 function readEbay () {
   const val = (id) => document.querySelector(`[data-testid="${id}"]`)?.value.trim() ?? ''
@@ -19,8 +19,8 @@ function readEbay () {
         shipZip: val('input.location.to.zip')
       }
   if (!w && !document.querySelector('[data-testid="input.weight.lbs"]')) return null
-  const row = [...document.querySelectorAll('[data-testid="service-result-row"]')]
-    .find((tr) => /Ground Advantage/i.test(tr.cells[0]?.textContent))
-  const price = row?.querySelector('[data-testid="min-price-number"]')?.textContent.trim()
-  return { ...pkg, labelCost: price || null }
+  const rows = [...document.querySelectorAll('[data-testid="service-result-row"]')]
+  const price = (re) => rows.find((tr) => re.test(tr.cells[0]?.textContent))
+    ?.querySelector('[data-testid="min-price-number"]')?.textContent.trim() || null
+  return { ...pkg, labelCost: price(/Ground Advantage/i), mediaCost: price(/Media Mail/i) }
 }

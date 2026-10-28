@@ -65,7 +65,7 @@ npm start
 
 The calculator is only as accurate as its tables, so check these from time to time:
 
-- **eBay label cost** is the main way to price shipping: paste eBay's Ground Advantage quote into the calculator (or use the Chrome extension in `extension/`). The rate tables below are only a fallback estimate when that field is empty.
+- **eBay label cost** is the main way to price shipping: paste eBay's Ground Advantage quote into the calculator (or use the Chrome extension in `extension/`). The rate tables below are only a fallback estimate when that field is empty. With **Qualifies for Media Mail** ticked, eBay's Media Mail quote goes in **eBay Media Mail cost** the same way.
 - **USPS Ground Advantage** is seeded with *Commercial* prices from USPS Notice 123 (effective Oct 4, 2026). The app checks [USPS's price files](https://pe.usps.com/pricechange/index) once a day (the server looks hourly and fetches when the last check is over 24 hours old). When the price change in effect publishes a table that differs from yours, open `/rates` (no longer in the nav) and **Apply update** pulls it in. Cells you've edited are kept unless you tick the box to replace them. eBay Labels pricing can be lower: set **eBay Labels discount on USPS** in Settings, or edit `/rates` cells to match what you actually pay (edited cells ignore the discount).
 - **UPS Ground** rates are **placeholders** (copied from USPS) until you enter your eBay UPS label prices. The calculator flags them with a "Placeholder rate" badge.
 - **UPS worst zone** is a manual setting (default 8). Check UPS's zone chart for your ZIP.

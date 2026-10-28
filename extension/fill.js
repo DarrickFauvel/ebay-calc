@@ -15,7 +15,7 @@ function fillShipPad (data) {
       }
       continue
     }
-    el.value = value || (name === 'shipZip' || name === 'labelCost' ? '' : '0')
+    el.value = value || (['shipZip', 'labelCost', 'mediaCost'].includes(name) ? '' : '0')
     el.dispatchEvent(new Event('input', { bubbles: true }))
   }
   return { ok: true }

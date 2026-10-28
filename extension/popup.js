@@ -16,7 +16,8 @@ function show (data) {
     ['Weight', `${data.lb || 0} lb ${data.oz || 0} oz`],
     ['Box', data.length ? `${data.length} × ${data.width} × ${data.height} in` : '—'],
     ['To ZIP', data.shipZip || '—'],
-    ['GA label', data.labelCost ? `$${data.labelCost}` : 'not calculated yet']
+    ['GA label', data.labelCost ? `$${data.labelCost}` : 'not calculated yet'],
+    ['Media Mail', data.mediaCost ? `$${data.mediaCost}` : '—']
   ]
   $('saved').replaceChildren(...(rows ?? []).flatMap(([k, v]) => {
     const dt = document.createElement('dt')

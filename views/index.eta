@@ -86,6 +86,10 @@
         </label>
       </div>
       <label class="check"><input type="checkbox" data-bind="media"> Qualifies for Media Mail <small class="hint">(books, CDs, DVDs, vinyl; no ads or games)</small></label>
+      <label class="field" data-show="$media">
+        <span>eBay Media Mail cost</span>
+        <span class="affix" data-prefix="$"><input type="number" inputmode="decimal" min="0" step="0.01" placeholder="Optional" data-bind="mediaCost"></span>
+      </label>
       <p class="hint">eBay label cost is eBay's USPS Ground Advantage price. Leave it empty to estimate from the rate table.</p>
 <%~ include('./partials/ship-to', { dest: it.q.dest }) %>
     </details>
