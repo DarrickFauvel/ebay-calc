@@ -119,7 +119,7 @@ if (globalThis.document) {
     .sheet header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 8px }
     .sheet h2 { flex: 1; margin: 0; font-size: 16px }
     .sheet a { color: #f0f0f0; font-weight: 600 }
-    .row { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid #333 }
+    .row { display: grid; grid-template-columns: 1fr auto auto; column-gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid #333 }
     /* Hidden: just the header strip, so the form has room while you work through it. */
     @media (max-width: 79.99rem) {
       .sheet.min .row { display: none }
@@ -131,8 +131,15 @@ if (globalThis.document) {
       .sheet .min-btn { display: none }
     }
     .row .k { color: #a6a6a6; font-size: 14px }
+    /* Fill result: a stripe down the left edge and the status in the same color. */
+    .row { padding: 8px 8px 8px 12px; box-shadow: inset 4px 0 transparent }
+    .row[data-state="ok"] { box-shadow: inset 4px 0 #4ade80; background: rgb(74 222 128 / 0.08) }
+    .row[data-state="ok"] .k { color: #4ade80 }
+    .row[data-state="check"] { box-shadow: inset 4px 0 #facc15; background: rgb(250 204 21 / 0.08) }
+    .row[data-state="check"] .k { color: #facc15 }
+    .row[data-state="miss"] { box-shadow: inset 4px 0 #f87171; background: rgb(248 113 113 / 0.08) }
+    .row[data-state="miss"] .k { color: #f87171 }
     .row .v { overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
-    .row > button:not(.go) { grid-column: 2 }
     /* The row's name and value: a plain-looking button that jumps to and fills the eBay field. */
     .row .go { display: grid; min-width: 0; max-width: none; min-height: 44px; padding: 4px 8px; margin: 0 -8px; border-radius: 8px; box-shadow: none; text-align: left; font: inherit; line-height: 1.3; white-space: normal }
     .row .go:hover, .row .go:focus-visible { background: #2a2a2a }
@@ -246,27 +253,69 @@ if (globalThis.document) {
     for (const f of FIELDS) {
       const v = listing[f.key]
       if (!v) continue
-      const row = { name: f.name, value: String(v), patterns: f.patterns, fill: (el) => f.fill(String(v), el) }
-      row.status = statusText(await apply(row))
+      const row = { name: f.name, value: String(v), patterns: withAlias(f.name, f.patterns), fill: (el) => f.fill(String(v), el) }
+      row.ok = await apply(row)
       rows.push(row)
     }
     // Specifics wait for a click: each one opens an eBay menu, and doing them all at once would fight over focus.
     for (const [k, v] of specificRows(listing.itemSpecifics)) {
       const raw = listing.itemSpecifics[k]
       const values = (Array.isArray(raw) ? raw : [raw]).map(String).filter((s) => s.trim())
-      const re = new RegExp(`^${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
-      rows.push({ name: k, value: v, patterns: [re], fill: (el) => fillSpecific(values, el), status: 'Item specific, click to fill' })
+      rows.push({ name: k, value: v, patterns: withAlias(k, [exact(k)]), fill: (el) => fillSpecific(values, el) })
     }
     const cost = skuCost(listing.sku)
     if (cost) chrome.runtime.sendMessage({ fill: { cost } }).catch((err) => console.warn('Ship Pad: send failed', err))
     showSheet(rows, listing.compQuery)
   }
 
-  async function apply (row) {
-    try { return await row.fill(find(row.patterns)) } catch (err) { console.warn(`Ship Pad: couldn't fill ${row.name}`, err) }
+  async function apply (row, el = find(row.patterns)) {
+    try { return await row.fill(el) } catch (err) { console.warn(`Ship Pad: couldn't fill ${row.name}`, err) }
     return false
   }
-  const statusText = (ok) => ok === 'check' ? '→ Entered, check it' : ok ? '✓ Filled' : '⚠ Not found, copy it'
+  // ok: true filled, 'check' entered in a dropdown we can't confirm, false no field, undefined not tried yet (specifics).
+  const statusText = (ok) => ok === undefined ? 'Item specific, click to fill' : ok === 'check' ? '→ Entered, check it' : ok ? '✓ Filled' : '⚠ Not found, Pick its field'
+  const stateOf = (ok) => ok === undefined ? '' : ok === 'check' ? 'check' : ok ? 'ok' : 'miss'
+
+  // Fields you pointed a row at with Pick: row name → that field's label text. In eBay's localStorage, so it sticks across drafts.
+  const ALIASES = 'shipPadFieldAliases'
+  const aliases = () => { try { return JSON.parse(localStorage.getItem(ALIASES)) ?? {} } catch { return {} } }
+  const exact = (s) => new RegExp(`^${s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+  function withAlias (name, patterns) {
+    const label = aliases()[name.toLowerCase()]
+    return label ? [exact(label), ...patterns] : patterns
+  }
+  function saveAlias (name, label) {
+    try { localStorage.setItem(ALIASES, JSON.stringify({ ...aliases(), [name.toLowerCase()]: label })) } catch {}
+  }
+  // The text find() matches for a field: its <label>, or the element its aria-labelledby names.
+  function labelOf (el) {
+    const id = el.getAttribute('aria-labelledby')?.split(' ')[0]
+    const label = el.labels?.[0] ?? (id && document.getElementById(id))
+    return label?.textContent.replace(/\s+/g, ' ').trim() || null
+  }
+
+  // Pick: the next click on the page chooses a field instead of doing what it normally would. Esc or a click on the panel cancels.
+  function pickField () {
+    return new Promise((resolve) => {
+      const done = (el) => {
+        removeEventListener('click', onClick, true)
+        removeEventListener('keydown', onKey, true)
+        document.documentElement.style.cursor = ''
+        resolve(el)
+      }
+      const onClick = (e) => {
+        if (e.composedPath().includes(host)) return done(null)
+        e.preventDefault()
+        e.stopPropagation()
+        const t = e.target
+        done(t.closest('label')?.control ?? t.closest('input, textarea, select, [role="combobox"], [aria-haspopup], button') ?? t)
+      }
+      const onKey = (e) => { if (e.key === 'Escape') done(null) }
+      addEventListener('click', onClick, true)
+      addEventListener('keydown', onKey, true)
+      document.documentElement.style.cursor = 'crosshair'
+    })
+  }
 
   // Built with textContent: the values come from the clipboard.
   function showSheet (rows, compQuery) {
@@ -307,16 +356,43 @@ if (globalThis.document) {
       go.title = `Go to ${name} and fill it`
       const k = document.createElement('span')
       k.className = 'k'
-      k.textContent = `${name} · ${r.status}`
       const v = document.createElement('span')
       v.className = 'v'
       v.textContent = value
       go.append(k, v)
+      // Shows the row's result: the status text, and its color (green filled, yellow check it, red not found).
+      const show = () => {
+        k.textContent = `${name} · ${statusText(r.ok)}${r.matched ? ` · matched to "${r.matched}"` : ''}`
+        row.dataset.state = stateOf(r.ok)
+      }
+      show()
       go.addEventListener('click', async () => {
         const el = find(r.patterns)
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         if (el?.matches('input, textarea, select, button')) el.focus({ preventScroll: true })
-        k.textContent = `${name} · ${statusText(await apply(r))}`
+        r.ok = await apply(r)
+        show()
+      })
+      // Pick: point this row at a field find() missed (or got wrong). Its label is remembered for the next paste.
+      const pick = document.createElement('button')
+      pick.type = 'button'
+      pick.textContent = 'Pick'
+      pick.ariaLabel = `Pick the eBay field for ${name}`
+      pick.addEventListener('click', async () => {
+        pick.textContent = 'Click field…'
+        k.textContent = `${name} · Click its field on the page (Esc cancels)`
+        const el = await pickField()
+        pick.textContent = 'Pick'
+        if (!el) return show()
+        const ok = await apply(r, el)
+        const label = ok && labelOf(el)
+        if (label) {
+          saveAlias(name, label)
+          r.patterns = [exact(label), ...r.patterns]
+        }
+        r.ok = ok
+        r.matched = label
+        show()
       })
       const copy = document.createElement('button')
       copy.type = 'button'
@@ -331,7 +407,7 @@ if (globalThis.document) {
         }
         setTimeout(() => { copy.textContent = 'Copy' }, 1200)
       })
-      row.append(go, copy)
+      row.append(go, pick, copy)
       return row
     }))
     sheet.classList.remove('min')
