@@ -308,7 +308,7 @@ if (globalThis.document) {
   function save () {
     try {
       if (sheet.hidden || !current) return sessionStorage.removeItem(SAVED)
-      const rows = shown.map(({ ok, manual, matched }) => ({ ok, manual, matched }))
+      const rows = shown.map(({ ok, manual, matched, autoMiss }) => ({ ok, manual, matched, autoMiss }))
       sessionStorage.setItem(SAVED, JSON.stringify({ listing: current, rows, min: sheet.classList.contains('min') }))
     } catch {}
   }
@@ -344,7 +344,12 @@ if (globalThis.document) {
     for (const r of shown) {
       if (r.picking) continue
       if (!r.el?.isConnected) r.el = find(r.patterns)
-      if (!r.el) continue
+      // An untried specific with no field goes red, which shows its Add button; back to neutral if eBay renders the field later.
+      if (!r.el) {
+        if (r.specific && r.ok === undefined) { r.ok = false; r.autoMiss = true; r.show() }
+        continue
+      }
+      if (r.autoMiss && r.ok === false) { r.ok = r.autoMiss = undefined; r.show() }
       const got = fieldValue(r.el)
       const readable = r.el.matches('input, textarea, select')
       const filled = (readable && !!got) || r.values.some((v) => ` ${norm(got)} `.includes(` ${norm(v)} `))
@@ -459,7 +464,7 @@ if (globalThis.document) {
         add.addEventListener('click', async () => {
           k.textContent = `${name} · Adding on eBay…`
           try { r.ok = await addCustomSpecific(name, r.values) } catch (err) { console.warn(`Ship Pad: couldn't add ${name}`, err) }
-          r.manual = false
+          r.manual = r.autoMiss = false
           r.el = null
           show()
         })
@@ -471,7 +476,7 @@ if (globalThis.document) {
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         if (el?.matches('input, textarea, select, button')) el.focus({ preventScroll: true })
         r.ok = await apply(r, el)
-        r.manual = false
+        r.manual = r.autoMiss = false
         show()
       })
       // Pick: point this row at a field find() missed (or got wrong). Its label is remembered for the next paste.
@@ -495,7 +500,7 @@ if (globalThis.document) {
           r.patterns = [exact(label), ...r.patterns]
         }
         r.ok = ok
-        r.manual = false
+        r.manual = r.autoMiss = false
         r.matched = label
         show()
       })
