@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { Eta } from 'eta'
 
 const eta = new Eta({
@@ -13,6 +14,9 @@ export const weight = (oz) => {
   return [lb && `${lb} lb`, rem && `${rem} oz`].filter(Boolean).join(' ') || '0 oz'
 }
 
-const helpers = { usd, pct, weight }
+// The extension's manifest version is the one that gets bumped, so it doubles as the app version.
+const version = JSON.parse(readFileSync(new URL('../../extension/manifest.json', import.meta.url))).version
+
+const helpers = { usd, pct, weight, version }
 
 export const render = (name, data = {}) => eta.render(name, { ...helpers, ...data })

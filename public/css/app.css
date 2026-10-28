@@ -107,7 +107,6 @@
   /* Wide: tabs move into the header as pills. */
   @media (min-width: 52rem) {
     .site-header { justify-content: start; gap: 1.25rem; }
-    .site-header .header-actions { margin-inline-start: auto; }
     .tabbar {
       position: static;
       display: flex;
@@ -132,6 +131,7 @@
   .brand {
     display: flex; align-items: center; gap: 0.5rem;
     font-weight: 700; color: var(--text); text-decoration: none;
+    & .version { color: var(--muted); font-size: 0.75rem; font-weight: 500; }
   }
   main { max-inline-size: 72rem; margin-inline: auto; }
 
@@ -247,7 +247,6 @@
     font-weight: 600;
     cursor: pointer;
     &.secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
-    &.quiet { background: transparent; color: var(--muted); font-weight: 500; &:hover { color: var(--text); } }
     &:disabled { opacity: 0.55; cursor: progress; }
     &.icon-btn { padding: 0.3rem 0.6rem; background: transparent; color: var(--muted); &:hover { color: var(--bad); } }
   }
@@ -260,7 +259,6 @@
   #ebay-sync { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem; &[hidden] { display: none; } }
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
 
-  .header-actions { display: flex; align-items: center; gap: 0.5rem; }
   label.check { display: flex; align-items: center; gap: 0.5rem; min-block-size: var(--tap); }
 
   .rate-update {
