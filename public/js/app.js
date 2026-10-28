@@ -11,6 +11,22 @@ addEventListener('online', syncOnline)
 addEventListener('offline', syncOnline)
 syncOnline()
 
+// Extension update notice. content.js stamps data-extension="<version>" on <html>; installs before
+// 0.5.2 don't, but on the calculator they do reveal #ebay-sync, so that counts as an old version.
+const update = document.querySelector('.extension-update')
+const sync = document.getElementById('ebay-sync')
+const syncExtension = () => {
+  const installed = document.documentElement.dataset.extension ?? (sync && !sync.hidden ? 'old' : null)
+  update.hidden = !installed || installed === update.dataset.version
+}
+if (update) {
+  // content.js runs at document_idle, which may be after this module.
+  const observer = new MutationObserver(syncExtension)
+  observer.observe(document.documentElement, { attributeFilter: ['data-extension'] })
+  if (sync) observer.observe(sync, { attributeFilter: ['hidden'] })
+  syncExtension()
+}
+
 // Drop leading zeros from number boxes on blur ("014.99" → "14.99", "00.5" → "0.5").
 // The input event tells Datastar's data-bind about the new value.
 addEventListener('change', ({ target: el }) => {

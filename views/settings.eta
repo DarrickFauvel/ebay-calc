@@ -59,7 +59,7 @@
     <p class="hint">eBay charges its final value fee on the sales tax as well, so a higher tax rate raises your fees. The US average combined rate is about 7–8%. UPS dimensional weight is L×W×H ÷ divisor (139 is standard).</p>
   </fieldset>
 
-  <fieldset>
+  <fieldset id="extension">
     <legend>Chrome extension</legend>
     <p>Copies weight, box size, ship-to ZIP and the USPS Ground Advantage price from eBay's shipping calculator into this calculator.</p>
     <p class="actions">
