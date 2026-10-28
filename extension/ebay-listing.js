@@ -204,7 +204,15 @@ if (globalThis.document) {
   // shortcut: guessed from eBay's form (labelled Name/Value boxes, else a dialog's first two); returns 'check' since it can't confirm; pin to real markup if it misfires.
   async function addCustomSpecific (name, values) {
     const visible = (sel, re, scope = document) => [...scope.querySelectorAll(sel)].find((e) => re.test(e.textContent.replace(/\s+/g, ' ').trim()) && e.checkVisibility())
-    const open = visible('button, a, [role="button"]', /add (a )?custom (item )?specific/i)
+    const addBtn = () => visible('button, a, [role="button"]', /add (a )?custom (item )?specific/i)
+    let open = addBtn()
+    // eBay keeps the button behind the specifics section's "Show more". Expanding sections is harmless, so try each until it appears.
+    for (const more of open ? [] : [...document.querySelectorAll('button, a, [role="button"]')]) {
+      if (!/^(show|see|view) (more|all)\b/i.test(more.textContent.replace(/\s+/g, ' ').trim()) || !more.checkVisibility()) continue
+      more.click()
+      await wait(400)
+      if ((open = addBtn())) break
+    }
     if (!open) return false
     open.scrollIntoView({ behavior: 'smooth', block: 'center' })
     open.click()
