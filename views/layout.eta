@@ -36,7 +36,6 @@
 <% } %>
     </nav>
     <div class="header-actions">
-      <qr-button></qr-button>
       <install-button></install-button>
     </div>
   </header>

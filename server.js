@@ -9,7 +9,6 @@ import calc from './src/routes/calc.js'
 import settings from './src/routes/settings.js'
 import rates from './src/routes/rates.js'
 import categories from './src/routes/categories.js'
-import qr from './src/routes/qr.js'
 
 await migrate()
 if (await seed()) console.log('First run: seeded rates and categories.')
@@ -24,7 +23,6 @@ app.use(calc)
 app.use(settings)
 app.use('/rates', rates)
 app.use('/categories', categories)
-app.use(qr)
 // The Chrome extension folder as a zip, unpacked into ship-pad-extension/ for "Load unpacked".
 app.get('/extension.zip', async (req, res) => {
   const dir = new URL('./extension/', import.meta.url)
