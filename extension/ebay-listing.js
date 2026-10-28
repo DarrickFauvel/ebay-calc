@@ -277,24 +277,50 @@ if (globalThis.document) {
     try { text = await navigator.clipboard.readText() } catch {}
     const listing = parseListing(text) ?? parseListing(prompt("Paste the listing JSON from Claude's reply:") ?? '')
     if (!listing) return
-    // A row: what the sheet shows, and how a click finds and fills its field again.
+    const rows = buildRows(listing)
+    // Specifics wait for a click: each one opens an eBay menu, and doing them all at once would fight over focus.
+    for (const r of rows) if (!r.specific) r.ok = await apply(r)
+    const cost = skuCost(listing.sku)
+    if (cost) chrome.runtime.sendMessage({ fill: { cost } }).catch((err) => console.warn('Ship Pad: send failed', err))
+    current = listing
+    showSheet(rows, listing.compQuery)
+  }
+
+  // A row: what the sheet shows, and how a click finds and fills its field again.
+  function buildRows (listing) {
     const rows = []
     for (const f of FIELDS) {
       const v = listing[f.key]
-      if (!v) continue
-      const row = { name: f.name, value: String(v), values: [String(v)], patterns: withAlias(f.name, f.patterns), fill: (el) => f.fill(String(v), el) }
-      row.ok = await apply(row)
-      rows.push(row)
+      if (v) rows.push({ name: f.name, value: String(v), values: [String(v)], patterns: withAlias(f.name, f.patterns), fill: (el) => f.fill(String(v), el) })
     }
-    // Specifics wait for a click: each one opens an eBay menu, and doing them all at once would fight over focus.
     for (const [k, v] of specificRows(listing.itemSpecifics)) {
       const raw = listing.itemSpecifics[k]
       const values = (Array.isArray(raw) ? raw : [raw]).map(String).filter((s) => s.trim())
       rows.push({ name: k, value: v, values, specific: true, patterns: withAlias(k, [exact(k)]), fill: (el) => fillSpecific(values, el) })
     }
-    const cost = skuCost(listing.sku)
-    if (cost) chrome.runtime.sendMessage({ fill: { cost } }).catch((err) => console.warn('Ship Pad: send failed', err))
-    showSheet(rows, listing.compQuery)
+    return rows
+  }
+
+  // The open sheet survives a reload of this draft: the listing, each row's result and whether it's hidden, in this tab's sessionStorage.
+  // Restoring only redraws; nothing is filled again.
+  const SAVED = `shipPadSheet:${location.pathname}${location.search}`
+  let current = null
+  function save () {
+    try {
+      if (sheet.hidden || !current) return sessionStorage.removeItem(SAVED)
+      const rows = shown.map(({ ok, manual, matched }) => ({ ok, manual, matched }))
+      sessionStorage.setItem(SAVED, JSON.stringify({ listing: current, rows, min: sheet.classList.contains('min') }))
+    } catch {}
+  }
+  function restore () {
+    let saved = null
+    try { saved = JSON.parse(sessionStorage.getItem(SAVED)) } catch {}
+    if (!saved?.listing) return
+    current = saved.listing
+    const rows = buildRows(saved.listing)
+    rows.forEach((r, i) => Object.assign(r, saved.rows?.[i]))
+    showSheet(rows, saved.listing.compQuery)
+    if (saved.min) sheet.querySelector('.min-btn').click()
   }
 
   async function apply (row, el = find(row.patterns)) {
@@ -393,12 +419,14 @@ if (globalThis.document) {
       const hide = sheet.classList.toggle('min')
       min.textContent = hide ? 'Show' : 'Hide'
       min.ariaExpanded = String(!hide)
+      save()
     })
     const close = document.createElement('button')
     close.type = 'button'
     close.textContent = 'Close'
-    close.addEventListener('click', () => { sheet.hidden = true; place() })
+    close.addEventListener('click', () => { sheet.hidden = true; save(); place() })
     head.append(min, close)
+    shown = rows
     sheet.replaceChildren(head, ...rows.map((r) => {
       const { name, value } = r
       const row = document.createElement('div')
@@ -419,6 +447,7 @@ if (globalThis.document) {
         k.textContent = `${name} · ${statusText(r.ok)}${r.manual ? ' on eBay' : ''}${r.matched ? ` · matched to "${r.matched}"` : ''}`
         row.dataset.state = stateOf(r.ok)
         if (add) add.hidden = r.ok !== false
+        save()
       }
       // Add: a specific eBay has no field for gets one through eBay's custom item specific form. Shown only on red specific rows.
       let add = null
@@ -486,9 +515,9 @@ if (globalThis.document) {
       row.append(go, ...(add ? [add] : []), pick, copy)
       return row
     }))
-    shown = rows
     sheet.classList.remove('min')
     sheet.hidden = false
+    save()
     place()
   }
 
@@ -594,5 +623,6 @@ if (globalThis.document) {
   document.addEventListener('input', schedule, true)
   document.addEventListener('change', schedule, true)
   new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true, characterData: true })
+  restore()
   refresh()
 }
