@@ -278,12 +278,34 @@ if (globalThis.document) {
     const listing = parseListing(text) ?? parseListing(prompt("Paste the listing JSON from Claude's reply:") ?? '')
     if (!listing) return
     const rows = buildRows(listing)
+    // A UPC goes in first: eBay looks the product up and redraws the form with its specifics, so wait for that to settle.
+    const code = rows.find((r) => r.specific && /^(upc|ean|isbn|gtin)$/i.test(r.name))
+    if (code) {
+      const el = find(code.patterns)
+      code.ok = await apply(code, el)
+      if (code.ok) {
+        el?.dispatchEvent?.(new FocusEvent('blur'))
+        el?.dispatchEvent?.(new FocusEvent('focusout', { bubbles: true }))
+        await settle()
+      }
+    }
     // Specifics wait for a click: each one opens an eBay menu, and doing them all at once would fight over focus.
     for (const r of rows) if (!r.specific) r.ok = await apply(r)
     const cost = skuCost(listing.sku)
     if (cost) chrome.runtime.sendMessage({ fill: { cost } }).catch((err) => console.warn('Ship Pad: send failed', err))
     current = listing
     showSheet(rows, listing.compQuery)
+  }
+
+  // Resolves once the page has gone `quiet` ms without DOM changes, or after `max` ms.
+  function settle (quiet = 800, max = 5000) {
+    return new Promise((resolve) => {
+      const end = () => { obs.disconnect(); clearTimeout(t); clearTimeout(cap); resolve() }
+      let t = setTimeout(end, quiet)
+      const cap = setTimeout(end, max)
+      const obs = new MutationObserver(() => { clearTimeout(t); t = setTimeout(end, quiet) })
+      obs.observe(document.body, { childList: true, subtree: true })
+    })
   }
 
   // A row: what the sheet shows, and how a click finds and fills its field again.
