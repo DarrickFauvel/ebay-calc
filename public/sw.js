@@ -1,6 +1,6 @@
 // App-shell service worker: cache static assets, network-first for pages,
 // offline fallback when a page can't be fetched. POSTs (SSE calcs) pass through.
-const VERSION = 'v18'
+const VERSION = 'v19'
 const CACHE = `shippad-${VERSION}`
 const SHELL = [
   '/offline',
@@ -9,7 +9,6 @@ const SHELL = [
   '/js/components/money-bar.js',
   '/js/components/copy-text.js',
   '/js/components/install-button.js',
-  '/js/components/qr-button.js',
   '/fonts/barlow-semi-condensed-600.woff2',
   '/fonts/barlow-semi-condensed-700.woff2',
   '/icons/icon.svg',

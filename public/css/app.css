@@ -261,46 +261,6 @@
   .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
 
   .header-actions { display: flex; align-items: center; gap: 0.5rem; }
-  button.icon-label {
-    display: inline-flex; align-items: center; gap: 0.4rem; padding-inline: 0.8rem;
-    & svg { inline-size: 1.15rem; block-size: 1.15rem; fill: currentColor; }
-  }
-  .qr-dialog {
-    max-inline-size: min(22rem, calc(100vw - 2rem));
-    padding: 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    color: var(--text);
-    text-align: center;
-    /* Fade + scale in and out. allow-discrete keeps the dialog (and its top-layer
-       backdrop) rendered while the close transition plays. */
-    --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-    opacity: 0;
-    scale: 0.94;
-    translate: 0 0.5rem;
-    transition:
-      opacity 0.2s var(--ease), scale 0.2s var(--ease), translate 0.2s var(--ease),
-      overlay 0.2s allow-discrete, display 0.2s allow-discrete;
-    &::backdrop {
-      background: rgb(0 0 0 / 0.5);
-      opacity: 0;
-      transition: opacity 0.2s ease, overlay 0.2s allow-discrete, display 0.2s allow-discrete;
-    }
-    &[open] {
-      opacity: 1; scale: 1; translate: 0 0;
-      &::backdrop { opacity: 1; }
-    }
-    @starting-style {
-      &[open] { opacity: 0; scale: 0.94; translate: 0 0.5rem; }
-      &[open]::backdrop { opacity: 0; }
-    }
-    & h2 { margin-block: 0 0.75rem; font-size: 1.1rem; }
-    /* QR stays dark-on-white in dark mode so scanners read it. */
-    & img { display: block; inline-size: 100%; max-inline-size: 15rem; block-size: auto; margin-inline: auto; border-radius: 0.5rem; background: #fff; }
-    & .qr-url { overflow-wrap: anywhere; }
-    & form { margin-block-start: 0.75rem; }
-  }
   label.check { display: flex; align-items: center; gap: 0.5rem; min-block-size: var(--tap); }
 
   .rate-update {
