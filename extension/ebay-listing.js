@@ -119,7 +119,7 @@ if (globalThis.document) {
     .sheet header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 8px }
     .sheet h2 { flex: 1; margin: 0; font-size: 16px }
     .sheet a { color: #f0f0f0; font-weight: 600 }
-    .row { display: grid; grid-template-columns: 1fr auto auto; column-gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid #333 }
+    .row { display: grid; grid-template-columns: 1fr repeat(3, auto); column-gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid #333 }
     /* Hidden: just the header strip, so the form has room while you work through it. */
     @media (max-width: 79.99rem) {
       .sheet.min .row { display: none }
@@ -200,6 +200,27 @@ if (globalThis.document) {
     return !!el
   }
 
+  // No field for a specific: eBay's "Add custom item specific" form (name, value, Save). Multiple values go in comma-separated.
+  // shortcut: guessed from eBay's form (labelled Name/Value boxes, else a dialog's first two); returns 'check' since it can't confirm; pin to real markup if it misfires.
+  async function addCustomSpecific (name, values) {
+    const visible = (sel, re, scope = document) => [...scope.querySelectorAll(sel)].find((e) => re.test(e.textContent.replace(/\s+/g, ' ').trim()) && e.checkVisibility())
+    const open = visible('button, a, [role="button"]', /add (a )?custom (item )?specific/i)
+    if (!open) return false
+    open.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    open.click()
+    await wait(500)
+    const dialog = [...document.querySelectorAll('[role="dialog"], dialog[open]')].find((d) => d.checkVisibility())
+    const boxes = dialog ? [...dialog.querySelectorAll('input:not([type]), input[type="text"], textarea')].filter((i) => i.checkVisibility()) : []
+    const nameBox = find([/^(item specific |custom )?name$/i]) ?? boxes[0]
+    const valueBox = find([/^(item specific )?values?$/i]) ?? boxes[1]
+    if (!nameBox?.matches('input, textarea') || !valueBox?.matches('input, textarea')) return false
+    setValue(nameBox, name)
+    setValue(valueBox, values.join(', '))
+    await wait(200)
+    visible('button', /^(save|done|add|apply)$/i, dialog ?? document)?.click()
+    return 'check'
+  }
+
   // Item specifics: a text box, a <select>, or eBay's dropdown that opens a search box taking custom values.
   // In the dropdown: type each value, then click the matching option or press Enter to add it as your own.
   // shortcut: guessed from eBay's menu pattern (focused search box on open), returns 'check' since it can't confirm; pin to real markup if it misfires.
@@ -261,7 +282,7 @@ if (globalThis.document) {
     for (const [k, v] of specificRows(listing.itemSpecifics)) {
       const raw = listing.itemSpecifics[k]
       const values = (Array.isArray(raw) ? raw : [raw]).map(String).filter((s) => s.trim())
-      rows.push({ name: k, value: v, values, patterns: withAlias(k, [exact(k)]), fill: (el) => fillSpecific(values, el) })
+      rows.push({ name: k, value: v, values, specific: true, patterns: withAlias(k, [exact(k)]), fill: (el) => fillSpecific(values, el) })
     }
     const cost = skuCost(listing.sku)
     if (cost) chrome.runtime.sendMessage({ fill: { cost } }).catch((err) => console.warn('Ship Pad: send failed', err))
@@ -389,6 +410,22 @@ if (globalThis.document) {
       const show = () => {
         k.textContent = `${name} · ${statusText(r.ok)}${r.manual ? ' on eBay' : ''}${r.matched ? ` · matched to "${r.matched}"` : ''}`
         row.dataset.state = stateOf(r.ok)
+        if (add) add.hidden = r.ok !== false
+      }
+      // Add: a specific eBay has no field for gets one through eBay's custom item specific form. Shown only on red specific rows.
+      let add = null
+      if (r.specific) {
+        add = document.createElement('button')
+        add.type = 'button'
+        add.textContent = 'Add'
+        add.title = add.ariaLabel = `Add ${name} as a custom item specific on eBay`
+        add.addEventListener('click', async () => {
+          k.textContent = `${name} · Adding on eBay…`
+          try { r.ok = await addCustomSpecific(name, r.values) } catch (err) { console.warn(`Ship Pad: couldn't add ${name}`, err) }
+          r.manual = false
+          r.el = null
+          show()
+        })
       }
       r.show = show
       show()
@@ -438,7 +475,7 @@ if (globalThis.document) {
         }
         setTimeout(() => { copy.textContent = 'Copy' }, 1200)
       })
-      row.append(go, pick, copy)
+      row.append(go, ...(add ? [add] : []), pick, copy)
       return row
     }))
     shown = rows
