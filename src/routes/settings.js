@@ -1,3 +1,4 @@
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { Router } from 'express'
 import { getSettings, listCategories, updateSettings } from '../db/client.js'
 import { sse } from '../lib/sse.js'
@@ -14,9 +15,25 @@ const clampInt = (v, lo, hi, fallback) => {
 const status = (message, kind = 'ok') =>
   render('partials/status', { id: 'settings-status', message, kind })
 
+// The download's version (manifest) and when its newest file changed.
+async function extensionInfo () {
+  const dir = new URL('../../extension/', import.meta.url)
+  const names = await readdir(dir)
+  const [manifest, stats] = await Promise.all([
+    readFile(new URL('manifest.json', dir), 'utf8'),
+    Promise.all(names.map((name) => stat(new URL(name, dir))))
+  ])
+  const updated = new Date(Math.max(...stats.map((s) => s.mtimeMs)))
+  return {
+    version: JSON.parse(manifest).version,
+    updated,
+    updatedText: updated.toLocaleString('en-US', { timeZone: 'America/New_York', dateStyle: 'medium', timeStyle: 'short' })
+  }
+}
+
 router.get('/settings', async (req, res) => {
-  const [settings, categories] = await Promise.all([getSettings(), listCategories()])
-  res.send(render('settings', { title: 'Settings', nav: 'settings', settings, categories }))
+  const [settings, categories, extension] = await Promise.all([getSettings(), listCategories(), extensionInfo()])
+  res.send(render('settings', { title: 'Settings', nav: 'settings', settings, categories, extension }))
 })
 
 // For the Chrome extension: the ship-from ZIP it fills into eBay's shipping calculator.
