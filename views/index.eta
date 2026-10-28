@@ -54,7 +54,7 @@
 
     <%/* Mostly filled from eBay, so it stays closed; the summary shows what's in it. */%>
     <details class="package">
-      <summary>Package &amp; shipping <span class="summary-meta" data-text="[(+$lb || 0) + ' lb ' + (+$oz || 0) + ' oz', +$length ? $length + '×' + $width + '×' + $height + ' in' : '', $shipZip ? 'to ' + $shipZip : '', $labelCost ? 'label $' + $labelCost : 'label estimated'].filter(Boolean).join(' · ')"></span></summary>
+      <summary>Package &amp; shipping <span class="summary-meta" data-text="[(+$lb || 0) + ' lb ' + (+$oz || 0) + ' oz', +$length ? $length + '×' + $width + '×' + $height + ' in' : '', $shipZip ? 'to ' + $shipZip : '', $labelCost ? 'label $' + $labelCost : 'label estimated', $media ? 'Media Mail' : ''].filter(Boolean).join(' · ')"></span></summary>
       <fieldset>
         <legend>Packed weight</legend>
         <div class="field-grid">
@@ -85,6 +85,7 @@
           <span class="affix" data-suffix="%"><input type="number" inputmode="decimal" min="0" max="20" step="0.01" data-bind="taxPct"></span>
         </label>
       </div>
+      <label class="check"><input type="checkbox" data-bind="media"> Qualifies for Media Mail <small class="hint">(books, CDs, DVDs, vinyl; no ads or games)</small></label>
       <p class="hint">eBay label cost is eBay's USPS Ground Advantage price. Leave it empty to estimate from the rate table.</p>
 <%~ include('./partials/ship-to', { dest: it.q.dest }) %>
     </details>

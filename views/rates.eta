@@ -8,10 +8,14 @@
   </nav>
 <% if (it.service === 'ups_ground') { %>
   <p class="notice warn">These UPS Ground prices are placeholders copied from USPS. Replace them with the prices eBay Labels shows you; rates you've edited are marked.</p>
-<% } else { %>
+<% } else if (it.service === 'usps_ga') { %>
 <%~ include('./partials/rate-update', { source: it.source, applied: it.applied }) %>
 <% } %>
+<% if (it.service === 'usps_media') { %>
+  <p class="hint">Media Mail costs the same to every zone. USPS single-piece prices from Notice 123 (Oct 4, 2026); they don't update automatically, so edit a cell if eBay shows a different price.</p>
+<% } else { %>
   <p class="hint">Your worst zone (<strong><%= it.worstZone %></strong>) is highlighted. Rows give the price for packages up to that weight.</p>
+<% } %>
   <div class="table-scroll">
     <table class="rates">
       <colgroup>
@@ -24,7 +28,7 @@
         <tr>
           <th scope="col">Up to</th>
 <% for (const z of it.services[it.service].zones) { %>
-          <th scope="col" class="<%= z === it.worstZone ? 'worst' : '' %>">Zone <%= z %></th>
+          <th scope="col" class="<%= z === it.worstZone ? 'worst' : '' %>"><%= it.services[it.service].zones.length > 1 ? `Zone ${z}` : 'Any zone' %></th>
 <% } %>
         </tr>
       </thead>

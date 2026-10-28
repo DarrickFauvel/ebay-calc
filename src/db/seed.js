@@ -8,6 +8,12 @@ import { db, migrate } from './client.js'
 // Rows: [max_oz, zone1 … zone8]. eBay label prices may be lower — edit on /rates.
 const SEED_LABEL = 'Notice 123, effective Oct 4, 2026'
 const uspsGa = JSON.parse(readFileSync(new URL('./usps-ga-commercial.json', import.meta.url)))
+// USPS Media Mail, single piece, same notice. Rows: [max_oz, price]. Not zoned, no dim weight.
+const uspsMedia = JSON.parse(readFileSync(new URL('./usps-media.json', import.meta.url)))
+const mediaRows = () => uspsMedia.map(([maxOz, price]) => ({
+  sql: 'INSERT OR IGNORE INTO rates (service, max_oz, zone, price) VALUES (?, ?, ?, ?)',
+  args: ['usps_media', maxOz, 1, price]
+}))
 
 // eBay fee presets — verify against https://www.ebay.com/help/selling/fees-credits-invoices/selling-fees
 // [name, fvf %, tier threshold $, % above threshold, waives per-order fee]
@@ -39,7 +45,10 @@ export function rateRows (table = uspsGa) {
 export async function seed ({ force = false } = {}) {
   await migrate()
   const { rows: [{ n }] } = await db.execute('SELECT COUNT(*) AS n FROM rates')
-  if (n > 0 && !force) return false
+  if (n > 0 && !force) {
+    await db.batch(mediaRows(), 'write') // DBs seeded before Media Mail existed; keeps edited prices
+    return false
+  }
 
   const stmts = [
     'DELETE FROM rates',
@@ -50,6 +59,7 @@ export async function seed ({ force = false } = {}) {
       sql: 'INSERT INTO rates (service, max_oz, zone, price) VALUES (?, ?, ?, ?)',
       args
     })),
+    ...mediaRows(),
     ...CATEGORIES.map((c, i) => ({
       sql: 'INSERT INTO categories (name, fvf_pct, tier_threshold, tier_pct, no_per_order, sort) VALUES (?, ?, ?, ?, ?, ?)',
       args: [...c, i]

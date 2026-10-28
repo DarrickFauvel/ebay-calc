@@ -22,7 +22,7 @@
       { label: 'eBay fees', value: +r.fees.toFixed(2), tone: 'fees' },
       { label: r.profit < 0 ? 'Loss' : 'Profit', value: +r.profit.toFixed(2), tone: r.profit < 0 ? 'loss' : 'profit' }
     ]) %>"></money-bar>
-    <p><strong><%= it.usd(r.shipPad) %> of the price is shipping pad:</strong> the <%= it.usd(b.price) %> <%= b.ebay ? 'eBay ' : '' %>label (<%= b.name %><%= b.ebay ? '' : `, zone ${b.zone}` %>) plus the eBay fees charged on it.</p>
+    <p><strong><%= it.usd(r.shipPad) %> of the price is shipping pad:</strong> the <%= it.usd(b.price) %> <%= b.ebay ? 'eBay ' : '' %>label (<%= b.name %><%= b.ebay || b.zone == null ? '' : `, zone ${b.zone}` %>) plus the eBay fees charged on it.</p>
 <% if (d && q.worst && q.worst.price > b.price) { %>
     <p class="hint">To your worst zone (<%= q.worst.zone %>) the label would be <%= it.usd(q.worst.price) %>, <%= it.usd(q.worst.price - b.price) %> more.</p>
 <% } %>
@@ -38,7 +38,7 @@
     <div><dt>Final value fee <small>(<%= q.category.name %>, on buyer total)</small></dt><dd>−<%= it.usd(r.fvf) %></dd></div>
     <div><dt>Per-order fee</dt><dd>−<%= it.usd(r.perOrder) %></dd></div>
     <div class="total"><dt>eBay pays out</dt><dd><%= it.usd(r.payout) %></dd></div>
-    <div><dt>Shipping label (<%= b.ebay ? 'eBay quote' : d && !b.worstZone ? `zone ${b.zone} to ${d.zip}` : 'worst zone' %>)</dt><dd>−<%= it.usd(r.shipping) %></dd></div>
+    <div><dt>Shipping label (<%= b.ebay ? 'eBay quote' : b.zone == null ? 'Media Mail' : d && !b.worstZone ? `zone ${b.zone} to ${d.zip}` : 'worst zone' %>)</dt><dd>−<%= it.usd(r.shipping) %></dd></div>
     <div><dt>Item cost</dt><dd>−<%= it.usd(r.cost) %></dd></div>
     <div class="total <%= r.profit < 0 ? 'loss' : '' %>"><dt>Profit, <%= it.pct(r.margin) %> margin</dt><dd><%= it.usd(r.profit) %></dd></div>
     <div class="muted"><dt>Fees as % of list price</dt><dd><%= it.pct(r.effectiveFeePct) %></dd></div>
@@ -54,7 +54,7 @@
 <% for (const s of q.services) { %>
       <li class="service">
         <span class="name"><%= s.name %></span>
-        <span class="meta">Zone <%= s.zone %><%= d && s.worstZone ? ' (worst case)' : '' %> · <%= s.billableOz ? it.weight(s.billableOz) : '—' %><% if (s.dimApplied) { %> (dim weight)<% } %></span>
+        <span class="meta"><%= s.zone == null ? 'Any zone' : `Zone ${s.zone}` %><%= d && s.worstZone ? ' (worst case)' : '' %> · <%= s.billableOz ? it.weight(s.billableOz) : '—' %><% if (s.dimApplied) { %> (dim weight)<% } %></span>
         <span class="cost"><%= s.price == null ? 'n/a' : it.usd(s.price) %></span>
         <span class="badges">
 <% if (s === b) { %><span class="badge ink"><%= s.ebay ? 'eBay label' : 'Cheapest' %></span><% } %>
