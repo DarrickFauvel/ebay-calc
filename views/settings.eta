@@ -62,7 +62,10 @@
   <fieldset>
     <legend>Chrome extension</legend>
     <p>Copies weight, box size, ship-to ZIP and the USPS Ground Advantage price from eBay's shipping calculator into this calculator.</p>
-    <p><a href="/extension.zip" download>Download the extension (.zip)</a></p>
+    <p class="actions">
+      <a class="button" href="/extension.zip" download>Download the extension (.zip)</a>
+      <span class="hint">v<%= it.extension.version %> · updated <time datetime="<%= it.extension.updated.toISOString() %>"><%= it.extension.updatedText %></time> ET</span>
+    </p>
     <ol class="hint">
       <li>Unzip it. You get a <code>ship-pad-extension</code> folder.</li>
       <li>Open <code>chrome://extensions</code> and turn on <strong>Developer mode</strong>.</li>
