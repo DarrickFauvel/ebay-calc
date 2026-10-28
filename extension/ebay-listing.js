@@ -253,7 +253,7 @@ if (globalThis.document) {
     for (const f of FIELDS) {
       const v = listing[f.key]
       if (!v) continue
-      const row = { name: f.name, value: String(v), patterns: withAlias(f.name, f.patterns), fill: (el) => f.fill(String(v), el) }
+      const row = { name: f.name, value: String(v), values: [String(v)], patterns: withAlias(f.name, f.patterns), fill: (el) => f.fill(String(v), el) }
       row.ok = await apply(row)
       rows.push(row)
     }
@@ -261,7 +261,7 @@ if (globalThis.document) {
     for (const [k, v] of specificRows(listing.itemSpecifics)) {
       const raw = listing.itemSpecifics[k]
       const values = (Array.isArray(raw) ? raw : [raw]).map(String).filter((s) => s.trim())
-      rows.push({ name: k, value: v, patterns: withAlias(k, [exact(k)]), fill: (el) => fillSpecific(values, el) })
+      rows.push({ name: k, value: v, values, patterns: withAlias(k, [exact(k)]), fill: (el) => fillSpecific(values, el) })
     }
     const cost = skuCost(listing.sku)
     if (cost) chrome.runtime.sendMessage({ fill: { cost } }).catch((err) => console.warn('Ship Pad: send failed', err))
@@ -273,7 +273,32 @@ if (globalThis.document) {
     return false
   }
   // ok: true filled, 'check' entered in a dropdown we can't confirm, false no field, undefined not tried yet (specifics).
-  const statusText = (ok) => ok === undefined ? 'Item specific, click to fill' : ok === 'check' ? '→ Entered, check it' : ok ? '✓ Filled' : '⚠ Not found, Pick its field'
+  const statusText = (ok) => ok === undefined ? 'Click to fill' : ok === 'check' ? '→ Entered, check it' : ok ? '✓ Filled' : '⚠ Not found, Pick its field'
+  // What a field holds now: a box's text, a <select>'s chosen option, or the text eBay's dropdown button shows.
+  function fieldValue (el) {
+    if (el.matches('input, textarea')) return el.value.trim()
+    if (el.tagName === 'SELECT') return el.value ? el.selectedOptions[0]?.text.trim() ?? '' : ''
+    return el.textContent.replace(/\s+/g, ' ').trim()
+  }
+  // Called from refresh(): a field you filled on eBay turns its row green, and clearing it turns it neutral again.
+  // Boxes and selects count with any value; eBay's dropdown buttons only when they show the listing's value, since their placeholder is text too.
+  // Fields we can't read (the description editor, condition radios) are left alone.
+  let shown = []
+  function syncRows () {
+    if (sheet.hidden) return
+    for (const r of shown) {
+      if (r.picking) continue
+      if (!r.el?.isConnected) r.el = find(r.patterns)
+      if (!r.el) continue
+      const got = fieldValue(r.el)
+      const readable = r.el.matches('input, textarea, select')
+      const filled = (readable && !!got) || r.values.some((v) => ` ${norm(got)} `.includes(` ${norm(v)} `))
+      if (filled && r.ok !== true) r.ok = r.manual = true
+      else if (!filled && readable && r.ok === true) r.ok = r.manual = undefined
+      else continue
+      r.show()
+    }
+  }
   const stateOf = (ok) => ok === undefined ? '' : ok === 'check' ? 'check' : ok ? 'ok' : 'miss'
 
   // Fields you pointed a row at with Pick: row name → that field's label text. In eBay's localStorage, so it sticks across drafts.
@@ -362,15 +387,17 @@ if (globalThis.document) {
       go.append(k, v)
       // Shows the row's result: the status text, and its color (green filled, yellow check it, red not found).
       const show = () => {
-        k.textContent = `${name} · ${statusText(r.ok)}${r.matched ? ` · matched to "${r.matched}"` : ''}`
+        k.textContent = `${name} · ${statusText(r.ok)}${r.manual ? ' on eBay' : ''}${r.matched ? ` · matched to "${r.matched}"` : ''}`
         row.dataset.state = stateOf(r.ok)
       }
+      r.show = show
       show()
       go.addEventListener('click', async () => {
-        const el = find(r.patterns)
+        const el = r.el = find(r.patterns)
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         if (el?.matches('input, textarea, select, button')) el.focus({ preventScroll: true })
-        r.ok = await apply(r)
+        r.ok = await apply(r, el)
+        r.manual = false
         show()
       })
       // Pick: point this row at a field find() missed (or got wrong). Its label is remembered for the next paste.
@@ -381,9 +408,12 @@ if (globalThis.document) {
       pick.addEventListener('click', async () => {
         pick.textContent = 'Click field…'
         k.textContent = `${name} · Click its field on the page (Esc cancels)`
+        r.picking = true
         const el = await pickField()
+        r.picking = false
         pick.textContent = 'Pick'
         if (!el) return show()
+        r.el = el
         const ok = await apply(r, el)
         const label = ok && labelOf(el)
         if (label) {
@@ -391,6 +421,7 @@ if (globalThis.document) {
           r.patterns = [exact(label), ...r.patterns]
         }
         r.ok = ok
+        r.manual = false
         r.matched = label
         show()
       })
@@ -410,6 +441,7 @@ if (globalThis.document) {
       row.append(go, pick, copy)
       return row
     }))
+    shown = rows
     sheet.classList.remove('min')
     sheet.hidden = false
     place()
@@ -506,6 +538,7 @@ if (globalThis.document) {
       if (sendBtn) sendBtn.hidden = !v
     }
     findFooter()
+    syncRows()
   }
   let queued = false
   const schedule = () => {
