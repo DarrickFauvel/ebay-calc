@@ -25,7 +25,8 @@ router.get('/', async (req, res) => {
     // eBay's label price (filled by the extension) and ship-to ZIP survive a reload too; 0 means none.
     labelCost: last?.label_cost ? String(last.label_cost) : '',
     shipZip: last?.ship_zip ?? '',
-    taxZip: ''
+    taxZip: '',
+    media: false
   }
   const q = await quote(signals, settings)
   res.send(render('index', { title: 'Calculator', nav: 'calc', settings, categories, signals, q }))

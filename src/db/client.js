@@ -7,7 +7,9 @@ export const db = createClient({
 
 export const SERVICES = {
   usps_ga: { name: 'USPS Ground Advantage', zones: [1, 2, 3, 4, 5, 6, 7, 8] },
-  ups_ground: { name: 'UPS Ground', zones: [2, 3, 4, 5, 6, 7, 8] }
+  ups_ground: { name: 'UPS Ground', zones: [2, 3, 4, 5, 6, 7, 8] },
+  // One national price, stored as zone 1. Only offered when the item qualifies (books, discs, recorded media).
+  usps_media: { name: 'USPS Media Mail', zones: [1] }
 }
 
 const SCHEMA = [

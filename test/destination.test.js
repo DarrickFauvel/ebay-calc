@@ -66,3 +66,11 @@ test('pickBest prefers an eBay label cost over cheaper table rates', () => {
   assert.equal(pickBest([ups, ga]), ga)
   assert.equal(pickBest([ups, { ...ga, ebay: false }]), ups)
 })
+
+test('pickBest takes Media Mail over an eBay label cost only when it is cheaper', () => {
+  const ga = { key: 'usps_ga', price: 9.5, ebay: true, worstZone: false }
+  const media = { key: 'usps_media', zone: null, price: 5.13, worstZone: false }
+  assert.equal(pickBest([media, ga]).key, 'usps_media')
+  assert.equal(pickBest([{ ...media, price: 12 }, ga]).key, 'usps_ga')
+  assert.equal(pickBest([media, { ...ga, ebay: false, worstZone: true }], { uspsZone: 5 }).key, 'usps_media')
+})
