@@ -13,7 +13,7 @@ export const SERVICES = {
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
-    origin_zip TEXT NOT NULL DEFAULT '',
+    origin_zip TEXT NOT NULL DEFAULT '01510',
     usps_zone INTEGER NOT NULL DEFAULT 8,
     ups_zone INTEGER NOT NULL DEFAULT 8,
     ups_dim_divisor INTEGER NOT NULL DEFAULT 139,

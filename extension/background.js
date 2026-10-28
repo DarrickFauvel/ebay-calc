@@ -97,7 +97,8 @@ function onMessage (msg, sender, sendResponse) {
 async function toCalc (pkg) {
   const { originZip } = await fetch(new URL('settings.json', await base()), { credentials: 'include' })
     .then((r) => r.json()).catch(() => ({}))
-  const values = { ...pkg, fromZip: originZip }
+  // 01510 when Ship Pad has no ZIP saved (or can't be reached).
+  const values = { ...pkg, fromZip: originZip || '01510' }
   const fill = async (tabId) => (await chrome.scripting.executeScript({ target: { tabId }, func: fillCalc, args: [values] }))[0].result
   let [tab] = await chrome.tabs.query({ url: `${CALC}*` })
   if (tab) {
