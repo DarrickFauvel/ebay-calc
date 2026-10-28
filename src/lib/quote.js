@@ -23,6 +23,7 @@ export function parseInputs (s = {}) {
     targetProfit: num(s.targetProfit),
     listPrice: Math.max(0, num(s.listPrice)),
     labelCost: Math.max(0, num(s.labelCost)),
+    mediaCost: Math.max(0, num(s.mediaCost)),
     shipZip: String(s.shipZip ?? '').replace(/\D/g, '').slice(0, 5),
     taxZip: String(s.taxZip ?? ''),
     media: s.media === true || s.media === 'true'
@@ -71,15 +72,16 @@ export async function shippingQuotes (pkg, settings, { uspsZone } = {}) {
     if (isUps && oz > 0) oz = Math.max(oz, 16) // UPS bills a 1 lb minimum
     let rate = lookupRate(await ratesForZone(key, zone ?? 1), oz)
     if (key === 'usps_ga') rate = discountRate(rate, settings.usps_discount_pct)
-    // A label cost copied from eBay is the real Ground Advantage price for this package.
-    const ebay = key === 'usps_ga' && pkg.labelCost > 0
+    // Label costs copied from eBay are the real Ground Advantage and Media Mail prices for this package.
+    const ebayCost = isMedia ? pkg.mediaCost : key === 'usps_ga' ? pkg.labelCost : 0
+    const ebay = ebayCost > 0
     return {
       key,
       name: svc.name,
       zone,
       billableOz: oz,
       dimApplied: oz > pkg.weightOz && !(isUps && oz === 16),
-      price: ebay ? pkg.labelCost : rate?.price ?? null,
+      price: ebay ? ebayCost : rate?.price ?? null,
       ebay,
       estimate: isUps && rate && !rate.edited,
       worstZone: !ebay && !isMedia && (isUps || uspsZone == null),
@@ -95,9 +97,9 @@ export async function shippingQuotes (pkg, settings, { uspsZone } = {}) {
  */
 export function pickBest (services, { uspsZone } = {}) {
   const priced = services.filter((s) => s.price != null)
-  const ebay = priced.find((s) => s.ebay)
-  const media = priced.find((s) => s.key === 'usps_media')
-  if (ebay) return media?.price < ebay.price ? media : ebay
+  if (priced.some((s) => s.ebay)) {
+    return priced.filter((s) => s.ebay || s.key === 'usps_media').reduce((a, b) => b.price < a.price ? b : a)
+  }
   return priced.find((s) => !s.needsDims && !(uspsZone && s.worstZone)) ?? priced[0] ?? null
 }
 

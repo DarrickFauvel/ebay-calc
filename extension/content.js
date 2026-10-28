@@ -20,6 +20,7 @@ function render (prefix = 'From eBay') {
   if (+pkg.length) parts.push(`${pkg.length}×${pkg.width}×${pkg.height} in`)
   if (pkg.shipZip) parts.push(`to ${pkg.shipZip}`)
   parts.push(pkg.labelCost ? `USPS GA $${pkg.labelCost}` : 'waiting for Calculate…')
+  if (pkg.mediaCost) parts.push(`Media Mail $${pkg.mediaCost}`)
   text.textContent = `${prefix}: ${parts.join(' · ')}`
 }
 
