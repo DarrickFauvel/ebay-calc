@@ -132,7 +132,10 @@ if (globalThis.document) {
     }
     .row .k { color: #a6a6a6; font-size: 14px }
     .row .v { overflow: hidden; white-space: nowrap; text-overflow: ellipsis }
-    .row button { grid-column: 2; grid-row: 1 / 3 }
+    .row > button:not(.go) { grid-column: 2 }
+    /* The row's name and value: a plain-looking button that jumps to and fills the eBay field. */
+    .row .go { display: grid; min-width: 0; max-width: none; min-height: 44px; padding: 4px 8px; margin: 0 -8px; border-radius: 8px; box-shadow: none; text-align: left; font: inherit; line-height: 1.3; white-space: normal }
+    .row .go:hover, .row .go:focus-visible { background: #2a2a2a }
     @media (min-width: 30rem) { .brand { display: flex; flex: none } }
     @media (min-width: 52rem) { .bar { flex-wrap: wrap } .item { flex: 0 1 auto; min-width: 0 } }
   </style>
@@ -141,13 +144,14 @@ if (globalThis.document) {
   const bar = root.querySelector('.bar')
   const sheet = root.querySelector('.sheet')
 
-  // Paste listing: fills the draft from Claude's listing JSON. Item specifics are copy-only for now.
+  // Paste listing: fills the draft from Claude's listing JSON. Item specifics fill when you click their row.
+  // Each fill gets the value and the field find() matched for its patterns (the same field a row click scrolls to).
   const FIELDS = [
-    { key: 'title', name: 'Title', fill: (v) => setField([/^item title$/i, /^title$/i], v) },
-    { key: 'sku', name: 'Custom label (SKU)', fill: (v) => setField([/^custom label/i, /\bsku\b/i], v) },
-    { key: 'condition', name: 'Condition', fill: pickCondition },
-    { key: 'conditionNote', name: 'Condition description', fill: (v) => setField([/^condition description$/i, /^describe .*condition/i], v) },
-    { key: 'description', name: 'Description', fill: setDescription }
+    { key: 'title', name: 'Title', patterns: [/^item title$/i, /^title$/i], fill: setField },
+    { key: 'sku', name: 'Custom label (SKU)', patterns: [/^custom label/i, /\bsku\b/i], fill: setField },
+    { key: 'condition', name: 'Condition', patterns: [/^(item )?condition$/i], fill: pickCondition },
+    { key: 'conditionNote', name: 'Condition description', patterns: [/^condition description$/i, /^describe .*condition/i], fill: setField },
+    { key: 'description', name: 'Description', patterns: [/^(item )?description$/i], fill: setDescription }
   ]
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
 
@@ -158,34 +162,58 @@ if (globalThis.document) {
     el.dispatchEvent(new Event('input', { bubbles: true }))
     el.dispatchEvent(new Event('change', { bubbles: true }))
   }
-  function setField (patterns, value) {
-    const el = find(patterns)
+  function setField (value, el) {
     if (!el?.matches('input, textarea')) return false
     setValue(el, value)
     return true
   }
+  function setSelect (el, value) {
+    const opt = [...el.options].find((o) => norm(o.text) === norm(value))
+    if (!opt) return false
+    el.value = opt.value
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+    return true
+  }
+  const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+  // The visible clickable whose own text is the value: an option in an open eBay menu, or a radio/button.
+  const optionFor = (value) => [...document.querySelectorAll('span, div, label, button, li')]
+    .find((e) => e.textContent.length < 80 && norm(e.textContent) === norm(value) && e.checkVisibility())
+    ?.closest('[role="option"], [role="radio"], [role="menuitemradio"], [role="menuitemcheckbox"], label, button, li')
 
   // A <select>, or eBay's custom picker: click the option whose own text is the condition, opening the picker first if needed.
-  async function pickCondition (value) {
-    const field = find([/^(item )?condition$/i])
-    if (field?.tagName === 'SELECT') {
-      const opt = [...field.options].find((o) => norm(o.text) === norm(value))
-      if (!opt) return false
-      field.value = opt.value
-      field.dispatchEvent(new Event('change', { bubbles: true }))
-      return true
-    }
-    const option = () => [...document.querySelectorAll('span, div, label, button, li')]
-      .find((e) => e.textContent.length < 40 && norm(e.textContent) === norm(value) && e.checkVisibility())
-      ?.closest('[role="option"], [role="radio"], [role="menuitemradio"], label, button, li')
-    let el = option()
+  async function pickCondition (value, field) {
+    if (field?.tagName === 'SELECT') return setSelect(field, value)
+    let el = optionFor(value)
     if (!el && field) {
       field.click()
-      await new Promise((resolve) => setTimeout(resolve, 400))
-      el = option()
+      await wait(400)
+      el = optionFor(value)
     }
     el?.click()
     return !!el
+  }
+
+  // Item specifics: a text box, a <select>, or eBay's dropdown that opens a search box taking custom values.
+  // In the dropdown: type each value, then click the matching option or press Enter to add it as your own.
+  // shortcut: guessed from eBay's menu pattern (focused search box on open), returns 'check' since it can't confirm; pin to real markup if it misfires.
+  async function fillSpecific (values, el) {
+    if (!el) return false
+    if (el.matches('input, textarea')) return setField(values.join(', '), el)
+    if (el.tagName === 'SELECT') return setSelect(el, values[0])
+    let ok = false
+    for (const v of values) {
+      if (el.getAttribute('aria-expanded') !== 'true') el.click()
+      await wait(300)
+      const box = document.activeElement?.matches('input') ? document.activeElement : null
+      if (box) { setValue(box, v); await wait(400) }
+      const opt = optionFor(v)
+      if (opt) opt.click()
+      else if (box) box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }))
+      else continue
+      ok = 'check'
+      await wait(200)
+    }
+    return ok
   }
 
   // A plain textarea (HTML mode), or the rich editor: contenteditable on the page or in a same-origin iframe.
@@ -213,19 +241,32 @@ if (globalThis.document) {
     try { text = await navigator.clipboard.readText() } catch {}
     const listing = parseListing(text) ?? parseListing(prompt("Paste the listing JSON from Claude's reply:") ?? '')
     if (!listing) return
+    // A row: what the sheet shows, and how a click finds and fills its field again.
     const rows = []
     for (const f of FIELDS) {
       const v = listing[f.key]
       if (!v) continue
-      let ok = false
-      try { ok = await f.fill(String(v)) } catch (err) { console.warn(`Ship Pad: couldn't fill ${f.name}`, err) }
-      rows.push([f.name, String(v), ok ? '✓ Filled' : '⚠ Not found, copy it'])
+      const row = { name: f.name, value: String(v), patterns: f.patterns, fill: (el) => f.fill(String(v), el) }
+      row.status = statusText(await apply(row))
+      rows.push(row)
     }
-    for (const [k, v] of specificRows(listing.itemSpecifics)) rows.push([k, v, 'Item specific'])
+    // Specifics wait for a click: each one opens an eBay menu, and doing them all at once would fight over focus.
+    for (const [k, v] of specificRows(listing.itemSpecifics)) {
+      const raw = listing.itemSpecifics[k]
+      const values = (Array.isArray(raw) ? raw : [raw]).map(String).filter((s) => s.trim())
+      const re = new RegExp(`^${k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i')
+      rows.push({ name: k, value: v, patterns: [re], fill: (el) => fillSpecific(values, el), status: 'Item specific, click to fill' })
+    }
     const cost = skuCost(listing.sku)
     if (cost) chrome.runtime.sendMessage({ fill: { cost } }).catch((err) => console.warn('Ship Pad: send failed', err))
     showSheet(rows, listing.compQuery)
   }
+
+  async function apply (row) {
+    try { return await row.fill(find(row.patterns)) } catch (err) { console.warn(`Ship Pad: couldn't fill ${row.name}`, err) }
+    return false
+  }
+  const statusText = (ok) => ok === 'check' ? '→ Entered, check it' : ok ? '✓ Filled' : '⚠ Not found, copy it'
 
   // Built with textContent: the values come from the clipboard.
   function showSheet (rows, compQuery) {
@@ -255,15 +296,28 @@ if (globalThis.document) {
     close.textContent = 'Close'
     close.addEventListener('click', () => { sheet.hidden = true; place() })
     head.append(min, close)
-    sheet.replaceChildren(head, ...rows.map(([name, value, status]) => {
+    sheet.replaceChildren(head, ...rows.map((r) => {
+      const { name, value } = r
       const row = document.createElement('div')
       row.className = 'row'
+      // The name and value are one button: scroll to the eBay field and fill it (again).
+      const go = document.createElement('button')
+      go.type = 'button'
+      go.className = 'go'
+      go.title = `Go to ${name} and fill it`
       const k = document.createElement('span')
       k.className = 'k'
-      k.textContent = `${name} · ${status}`
+      k.textContent = `${name} · ${r.status}`
       const v = document.createElement('span')
       v.className = 'v'
       v.textContent = value
+      go.append(k, v)
+      go.addEventListener('click', async () => {
+        const el = find(r.patterns)
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        if (el?.matches('input, textarea, select, button')) el.focus({ preventScroll: true })
+        k.textContent = `${name} · ${statusText(await apply(r))}`
+      })
       const copy = document.createElement('button')
       copy.type = 'button'
       copy.textContent = 'Copy'
@@ -277,7 +331,7 @@ if (globalThis.document) {
         }
         setTimeout(() => { copy.textContent = 'Copy' }, 1200)
       })
-      row.append(k, v, copy)
+      row.append(go, copy)
       return row
     }))
     sheet.classList.remove('min')
