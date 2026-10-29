@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Ship Pad: copy from eBay",
-  "version": "0.5.3",
+  "version": "0.5.5",
   "description": "Price, comp and list on eBay without losing money on shipping: sold comps on search, listing-editor shortcuts and the shipping calculator, linked to Ship Pad.",
   "permissions": [
     "activeTab",

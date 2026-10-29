@@ -37,7 +37,10 @@ const TARGETS = [
       // Fell back to the section heading: no policy to show.
       return policy && !/^shipping/i.test(policy) ? policy : null
     },
-    label: (v) => `Shipping: ${v}`
+    label: (v) => `Shipping: ${v}`,
+    // Policy names are the seller's own; one that says Media Mail ticks Ship Pad's Media Mail box, any other unticks it.
+    send: (v) => ({ fill: { media: /media\s*mail/i.test(v) } }),
+    sendLabel: 'Set Media Mail in Ship Pad from this policy'
   },
   // Only clickables: a "Revise" heading or menu entry elsewhere on the page would otherwise win.
   // eBay's button: <button _track="-1.CTA.1.listItCallToAction" aria-label="Revise it">Revise it</button>

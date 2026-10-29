@@ -15,6 +15,12 @@ function fillShipPad (data) {
       }
       continue
     }
+    if (el.type === 'checkbox') {
+      el.checked = value === true || value === 'true'
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+      continue
+    }
     el.value = value || (['shipZip', 'labelCost', 'mediaCost'].includes(name) ? '' : '0')
     el.dispatchEvent(new Event('input', { bubbles: true }))
   }
