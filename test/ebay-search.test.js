@@ -5,7 +5,7 @@ import vm from 'node:vm'
 
 // The extension script isn't a module; run it without a document and pull out its pure helpers.
 const code = await readFile(new URL('../extension/ebay-search.js', import.meta.url), 'utf8')
-const { parseMoney, parseShipping, parseCount, sellThrough, summarize } = vm.runInNewContext(`${code}\n;({ parseMoney, parseShipping, parseCount, sellThrough, summarize })`)
+const { parseMoney, parseShipping, parseCount, sellThrough, summarize, itemId } = vm.runInNewContext(`${code}\n;({ parseMoney, parseShipping, parseCount, sellThrough, summarize, itemId })`)
 
 test('parseMoney reads prices and skips ranges', () => {
   assert.equal(parseMoney('$12.99'), 12.99)
@@ -45,4 +45,11 @@ test('sellThrough is sold over sold plus active', () => {
   assert.equal(sellThrough(0, 0), null)
   assert.equal(sellThrough(null, 10), null)
   assert.equal(sellThrough(10, null), null)
+})
+
+test('itemId reads the listing id from an item link', () => {
+  assert.equal(itemId('https://www.ebay.com/itm/123456789?hash=x'), '123456789')
+  assert.equal(itemId('https://www.ebay.com/itm/Lego-Set-6080/123456789'), '123456789')
+  assert.equal(itemId('https://www.ebay.com/sch/i.html?_nkw=lego'), null)
+  assert.equal(itemId(undefined), null)
 })

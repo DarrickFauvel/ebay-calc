@@ -1,6 +1,7 @@
 // On eBay's search results: a Comps button that turns on Buy It Now + Sold + Completed (and a condition) through the URL,
 // and on sold results, the median sold price and total (price + shipping) with a → that sends the total to Ship Pad's Check a price,
 // plus a sell-through rate from the sold count against the same search's active count.
+// Each sold card gets a Skip button to leave a wrong item, lot or bundle out of the median.
 
 // "$12.99" → 12.99. Null for ranges ("$10.00 to $15.00") and text without a price.
 function parseMoney (text = '') {
@@ -27,6 +28,11 @@ function parseCount (text = '') {
 function sellThrough (sold, active) {
   if (sold == null || active == null || sold + active === 0) return null
   return Math.round(sold / (sold + active) * 100)
+}
+
+// A listing link → its item id. Null when it isn't an /itm/ link.
+function itemId (href = '') {
+  return href.match(/\/itm\/(?:[^/?#]*\/)?(\d+)/)?.[1] ?? null
 }
 
 const median = (nums) => {
@@ -151,6 +157,28 @@ if (globalThis.document) {
   // Room at the bottom of the page so the bar never hides the last results or the page links.
   new ResizeObserver(() => { document.body.style.paddingBottom = `${host.offsetHeight}px` }).observe(host)
 
+  // Cards the seller marked as not a real comp (wrong item, lot, bundle). Kept until reload.
+  // shortcut: skips aren't saved across pages or reloads; persist them in sessionStorage if that turns out to matter.
+  const skipped = new Set()
+  function addSkip (li, id) {
+    if (li.querySelector('.shippad-skip')) return
+    const b = Object.assign(document.createElement('button'), { type: 'button', className: 'shippad-skip', textContent: '✕ Skip', title: 'Leave this sale out of the Ship Pad median' })
+    b.style.cssText = 'position:absolute;top:4px;right:4px;z-index:2;min-height:44px;padding:0 12px;border:0;border-radius:22px;background:#262626;color:#f0f0f0;font:600 14px/44px system-ui,sans-serif;cursor:pointer'
+    if (getComputedStyle(li).position === 'static') li.style.position = 'relative'
+    b.addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const on = !skipped.delete(id)
+      if (on) skipped.add(id)
+      b.setAttribute('aria-pressed', String(on))
+      b.textContent = on ? '↺ Use' : '✕ Skip'
+      li.style.opacity = on ? '0.35' : ''
+      refresh()
+    })
+    b.setAttribute('aria-pressed', 'false')
+    li.append(b)
+  }
+
   // eBay is moving result cards from .s-item to .s-card; take both. Struck-through prices are best offers
   // accepted (the real sold price is hidden), so those cards are skipped.
   function readCards () {
@@ -162,9 +190,14 @@ if (globalThis.document) {
       .filter((li) => !/shop on ebay/i.test(li.textContent))
       .map((li) => {
         const el = [...li.querySelectorAll('[class*="__price"]')].find((e) => !e.closest(struck) && !e.querySelector(struck))
-        return { price: parseMoney(el?.textContent), shipping: parseShipping(li.textContent.replace(/\s+/g, ' ')) }
+        return { li, id: itemId(li.querySelector('a[href*="/itm/"]')?.href), price: parseMoney(el?.textContent), shipping: parseShipping(li.textContent.replace(/\s+/g, ' ')) }
       })
       .filter((i) => i.price != null && i.shipping != null)
+      .filter((i) => {
+        if (i.id) addSkip(i.li, i.id)
+        return !skipped.has(i.id)
+      })
+      .map(({ price, shipping }) => ({ price, shipping }))
   }
 
   const COUNT = '.srp-controls__count-heading, [class*="count-heading"]'
@@ -187,7 +220,7 @@ if (globalThis.document) {
     summary = summarize(readCards())
     const sold = readCount(document)
     const str = sellThrough(sold, active)
-    const key = JSON.stringify([summary, sold, active])
+    const key = JSON.stringify([summary, sold, active, skipped.size])
     if (key !== shown) {
       shown = key
       const total = summary && Object.assign(document.createElement('b'), { textContent: `Total $${summary.total}` })
@@ -195,6 +228,7 @@ if (globalThis.document) {
       if (summary?.freeTotal) parts.push(`Free ship $${summary.freeTotal} (${summary.free})`)
       if (summary?.paidTotal) parts.push(`Paid ship $${summary.paidTotal} (${summary.n - summary.free})`)
       if (str != null) parts.push(`STR ${str}%`)
+      if (skipped.size) parts.push(`${skipped.size} skipped`)
       text.replaceChildren(...parts.flatMap((p, i) => i ? [' · ', p] : [p]))
       text.title = str == null ? '' : `${sold} sold / ${active} active (90 days)`
     }
