@@ -232,6 +232,11 @@ if (globalThis.document) {
     return 'check'
   }
 
+  // A fading blue outline on the field a row jumped to. Web Animations, since the page's CSS is eBay's and ours is in the shadow root.
+  function flash (el) {
+    el.animate([{ outline: '3px solid #3b82f6', outlineOffset: '2px' }, { outline: '3px solid transparent', outlineOffset: '2px' }], { duration: 2000, easing: 'ease-in' })
+  }
+
   // Item specifics: a text box, a <select>, or eBay's dropdown that opens a search box taking custom values.
   // In the dropdown: type each value, then click the matching option or press Enter to add it as your own.
   // shortcut: guessed from eBay's menu pattern (focused search box on open), returns 'check' since it can't confirm; pin to real markup if it misfires.
@@ -500,6 +505,7 @@ if (globalThis.document) {
         const el = r.el = find(r.patterns)
         el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
         if (el?.matches('input, textarea, select, button')) el.focus({ preventScroll: true })
+        if (el) flash(el)
         r.ok = await apply(r, el)
         r.manual = r.autoMiss = false
         show()
