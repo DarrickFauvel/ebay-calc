@@ -638,16 +638,11 @@ if (globalThis.document) {
 
   // Open the item specifics' "Show more" so every specific has a field before a paste. Each button is clicked once:
   // a redraw (after a UPC lookup) gets a new one and opens again, but if you collapse it, it stays collapsed.
+  // eBay's button: <button _track="1.ATTRIBUTES.0.ShowMore" aria-expanded="false" class="btn fake-link"><span>Show more</span>…</button>
   const opened = new WeakSet()
   function openSpecifics () {
-    const heading = find([/^item specifics$/i])
-    // Nearest "Show more" up from the heading is the section's own, not another section's.
-    for (let box = heading?.parentElement; box && box !== document.body; box = box.parentElement) {
-      const more = [...box.querySelectorAll('button, a, [role="button"]')].find((e) => /^(show|see|view) (more|all)\b/i.test(e.textContent.replace(/\s+/g, ' ').trim()) && e.checkVisibility())
-      if (!more) continue
-      if (!opened.has(more)) { opened.add(more); more.click() }
-      return
-    }
+    const more = document.querySelector('button[_track*="ATTRIBUTES"][_track$="ShowMore"][aria-expanded="false"]')
+    if (more && !opened.has(more)) { opened.add(more); more.click() }
   }
 
   // Keep the cost, price and policy current as you edit and as eBay renders. Only writes when something changes, so our own updates settle.
